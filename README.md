@@ -21,14 +21,10 @@ O **PI-V** é um pipeline de análise macro-financeira que:
 
 ## Screenshots
 
-![Ibovespa vs Dólar](reports/dual_line_ibovespa_dolar.png)
-![Selic vs Ibovespa](reports/selic_vs_ibovespa.png)
-![Selic vs Dólar](reports/selic_vs_dolar_brl.png)
-![Matriz de Correlação](reports/heatmap_correlacao.png)
-![Rolling Correlation](reports/rolling_correlation.png)
-![Forecast ARIMA](reports/forecast_arima.png)
-![Feature Importance (RF)](reports/feature_importance_rf.png)
-
+![Screenshot](./screenshots/image1.png)
+![Screenshot](./screenshots/image2.png)
+![Screenshot](./screenshots/image3.png)
+![Screenshot](./screenshots/image4.png)
 ---
 
 ## Estrutura do projeto
