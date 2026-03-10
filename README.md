@@ -1,5 +1,3 @@
-# README.md
-
 # PI-V — Análise Quantitativa: Ibovespa, Dólar & Política Monetária
 
 > Modelo quantitativo de relação entre política monetária (Selic/IPCA), mercado acionário (Ibovespa) e câmbio (USD/BRL) no Brasil.
@@ -18,6 +16,18 @@ O **PI-V** é um pipeline de análise macro-financeira que:
   - **Random Forest** — captura não-linearidades entre as variáveis.
 - Gera gráficos profissionais salvos na pasta `reports/`.
 - (Opcional) Envia o relatório automaticamente por **e-mail** e/ou **Telegram**.
+
+---
+
+## Screenshots
+
+![Ibovespa vs Dólar](reports/dual_line_ibovespa_dolar.png)
+![Selic vs Ibovespa](reports/selic_vs_ibovespa.png)
+![Selic vs Dólar](reports/selic_vs_dolar_brl.png)
+![Matriz de Correlação](reports/heatmap_correlacao.png)
+![Rolling Correlation](reports/rolling_correlation.png)
+![Forecast ARIMA](reports/forecast_arima.png)
+![Feature Importance (RF)](reports/feature_importance_rf.png)
 
 ---
 
