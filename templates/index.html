@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="pt-BR" x-data="app()" x-init="init()">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PI-V · Dashboard Macro-Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+      defer></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              navy: {
+                900: "#060d1a",
+                800: "#0d1b2e",
+                700: "#112240",
+                600: "#172a4e",
+              },
+              cyan: { 400: "#22d3ee", 500: "#06b6d4" },
+              emerald: { 400: "#34d399", 500: "#10b981" },
+              rose: { 400: "#fb7185", 500: "#f43f5e" },
+              amber: { 400: "#fbbf24" },
+            },
+            fontFamily: {
+              mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet" />
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: #060d1a;
+        color: #e2e8f0;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0d1b2e;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1e3a5f;
+        border-radius: 3px;
+      }
+      .tab-btn {
+        transition: all 0.2s;
+      }
+      .tab-btn.active {
+        background: rgba(34, 211, 238, 0.12);
+        color: #22d3ee;
+        border-color: #22d3ee;
+      }
+      .tab-btn:not(.active):hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: #1e3a5f;
+      }
+      .card {
+        background: #0d1b2e;
+        border: 1px solid #1a3050;
+        border-radius: 12px;
+      }
+      .badge-pos {
+        background: rgba(52, 211, 153, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+      }
+      .badge-neg {
+        background: rgba(251, 113, 133, 0.15);
+        color: #fb7185;
+        border: 1px solid rgba(251, 113, 133, 0.3);
+      }
+      .badge-neu {
+        background: rgba(148, 163, 184, 0.1);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .log-line {
+        animation: fadein 0.15s ease;
+      }
+      @keyframes fadein {
+        from {
+          opacity: 0;
+          transform: translateY(2px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .pulse-dot {
+        animation: pulse 1.5s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .chart-img {
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        cursor: zoom-in;
+      }
+      .chart-img:hover {
+        transform: scale(1.015);
+        box-shadow: 0 8px 40px rgba(34, 211, 238, 0.12);
+      }
+      input[type="date"] {
+        color-scheme: dark;
+      }
+      .heatmap-cell {
+        transition: background 0.3s;
+      }
+      .gradient-title {
+        background: linear-gradient(135deg, #22d3ee 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- ═══════════════ TOP NAV ═══════════════ -->
+    <header
+      class="border-b border-navy-700 bg-navy-800 px-6 py-3 flex items-center justify-between z-10 sticky top-0">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg">
+          <svg
+            class="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 13l4-4 4 4 4-6 4 4" />
+          </svg>
+        </div>
+        <span class="font-semibold text-white tracking-tight"
+          >PI-V <span class="gradient-title font-bold">Dashboard</span></span
+        >
+        <span class="text-xs text-slate-500 hidden sm:block"
+          >Ibovespa · Dólar · Selic</span
+        >
+      </div>
+      <div class="flex items-center gap-3">
+        <span
+          x-show="running"
+          class="flex items-center gap-1.5 text-xs text-amber-400">
+          <span
+            class="pulse-dot w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+          Pipeline rodando…
+        </span>
+        <span
+          x-show="!running && results"
+          class="flex items-center gap-1.5 text-xs text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+          Resultados atualizados
+        </span>
+        <span class="text-xs text-slate-500 font-mono" x-text="now"></span>
+      </div>
+    </header>
+
+    <!-- ═══════════════ MAIN LAYOUT ═══════════════ -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- ─── SIDEBAR ─── -->
+      <aside
+        class="w-64 shrink-0 border-r border-navy-700 bg-navy-800 overflow-y-auto p-4 flex flex-col gap-4">
+        <!-- Pipeline control card -->
+        <div class="card p-4 space-y-3">
+          <h2
+            class="text-xs uppercase tracking-widest text-slate-400 font-semibold">
+            Executar Pipeline
+          </h2>
+
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400">Data inicial</label>
+            <input
+              type="date"
+              x-model="form.start"
+              class="w-full bg-navy-900 border border-navy-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400"
+              >Data final <span class="text-slate-600">(opcional)</span></label
+            >
+            <input
+              type="date"
+              x-model="form.end"
+              class="w-full bg-navy-900 border border-navy-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500" />
+          </div>
+
+          <button
+            @click="runPipeline()"
+            :disabled="running"
+            :class="running ? 'opacity-50 cursor-not-allowed' : 'hover:from-cyan-400 hover:to-emerald-400'"
+            class="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-navy-900 font-semibold text-sm py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-cyan-900/30">
+            <svg
+              x-show="!running"
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M5 3l14 9-14 9V3z" />
+            </svg>
+            <svg
+              x-show="running"
+              class="w-4 h-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span x-text="running ? 'Processando…' : 'Executar'"></span>
+          </button>
+        </div>
+
+        <!-- Last run info -->
+        <div x-show="results" x-cloak class="card p-4 space-y-2">
+          <h2
+            class="text-xs uppercase tracking-widest text-slate-400 font-semibold">
+            Última Execução
+          </h2>
+          <div class="text-xs text-slate-300 space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Período</span
+              ><span
+                class="font-mono"
+                x-text="results?.date_range?.start + ' →'"></span>
+            </div>
+            <div class="flex justify-end">
+              <span class="font-mono" x-text="results?.date_range?.end"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Linhas</span
+              ><span
+                class="font-mono text-cyan-400"
+                x-text="results?.dataset_rows?.toLocaleString('pt-BR')"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Gráficos</span
+              ><span
+                class="font-mono text-cyan-400"
+                x-text="results?.charts?.length"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shortcuts -->
+        <div class="card p-4 space-y-1.5">
+          <h2
+            class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-2">
+            Períodos Rápidos
+          </h2>
+          <template x-for="p in periods" :key="p.label">
+            <button
+              @click="setQuickPeriod(p)"
+              class="w-full text-left text-xs text-slate-300 hover:text-cyan-400 px-2 py-1.5 rounded-lg hover:bg-cyan-900/20 transition-colors"
+              x-text="p.label"></button>
+          </template>
+        </div>
+
+        <div class="mt-auto text-xs text-slate-600 text-center pb-2">
+          PI-V v1.0 · 2026
+        </div>
+      </aside>
+
+      <!-- ─── MAIN CONTENT ─── -->
+      <main class="flex-1 overflow-y-auto p-6 space-y-5">
+        <!-- TABS -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <template x-for="tab in tabs" :key="tab.id">
+            <button
+              @click="activeTab = tab.id"
+              :class="activeTab === tab.id ? 'active' : ''"
+              class="tab-btn border border-navy-600 text-slate-400 text-sm px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+              <span x-html="tab.icon"></span>
+              <span x-text="tab.label"></span>
+              <span
+                x-show="tab.id === 'charts' && charts.length"
+                class="bg-cyan-900/50 text-cyan-400 text-xs px-1.5 py-0.5 rounded-full font-mono"
+                x-text="charts.length"></span>
+            </button>
+          </template>
+        </div>
+
+        <!-- ══ TAB: CHARTS ══ -->
+        <div x-show="activeTab === 'charts'" x-cloak>
+          <div
+            x-show="charts.length === 0"
+            class="card p-12 text-center text-slate-500">
+            <svg
+              class="w-12 h-12 mx-auto mb-3 opacity-30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <p class="text-sm">Nenhum gráfico gerado ainda.</p>
+            <p class="text-xs mt-1 text-slate-600">
+              Execute o pipeline para gerar os gráficos.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <template x-for="chart in charts" :key="chart">
+              <div class="card overflow-hidden">
+                <div class="px-4 pt-4 pb-2 flex items-center justify-between">
+                  <span
+                    class="text-xs font-mono text-slate-400"
+                    x-text="chartLabel(chart)"></span>
+                  <a
+                    :href="'/reports/' + chart"
+                    target="_blank"
+                    class="text-xs text-cyan-500 hover:text-cyan-400 flex items-center gap-1 transition-colors">
+                    <svg
+                      class="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Abrir
+                  </a>
+                </div>
+                <a :href="'/reports/' + chart" target="_blank">
+                  <img
+                    :src="'/reports/' + chart + '?t=' + ts"
+                    class="chart-img w-full object-contain bg-navy-900"
+                    :alt="chart"
+                    loading="lazy" />
+                </a>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ══ TAB: CORRELAÇÃO ══ -->
+        <div x-show="activeTab === 'correlation'" x-cloak>
+          <div
+            x-show="!results"
+            class="card p-12 text-center text-slate-500 text-sm">
+            Execute o pipeline para ver a análise de correlação.
+          </div>
+          <div x-show="results" class="space-y-5">
+            <!-- Pearson heatmap table -->
+            <div class="card p-5">
+              <h3 class="text-sm font-semibold text-slate-200 mb-4">
+                Matriz de Correlação de Pearson
+              </h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs font-mono">
+                  <thead>
+                    <tr>
+                      <th
+                        class="text-left text-slate-500 pb-2 pr-3 font-medium"></th>
+                      <template x-for="col in pearsonCols" :key="col">
+                        <th
+                          class="text-slate-400 pb-2 px-2 font-medium text-center"
+                          x-text="col"></th>
+                      </template>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="row in pearsonCols" :key="row">
+                      <tr class="border-t border-navy-700">
+                        <td
+                          class="text-slate-400 py-2 pr-3 font-medium text-left"
+                          x-text="row"></td>
+                        <template x-for="col in pearsonCols" :key="col">
+                          <td class="py-2 px-2 text-center rounded">
+                            <span
+                              :class="corrClass(results?.pearson_matrix?.[col]?.[row])"
+                              class="inline-block min-w-[4rem] px-2 py-0.5 rounded text-xs font-semibold"
+                              x-text="corrFmt(results?.pearson_matrix?.[col]?.[row])">
+                            </span>
+                          </td>
+                        </template>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Significance table -->
+            <div class="card p-5">
+              <h3 class="text-sm font-semibold text-slate-200 mb-4">
+                Teste de Significância (α = 0.05)
+              </h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="border-b border-navy-700">
+                      <th class="text-left text-slate-500 pb-2 font-medium">
+                        Par
+                      </th>
+                      <th class="text-center text-slate-500 pb-2 font-medium">
+                        Pearson r
+                      </th>
+                      <th class="text-center text-slate-500 pb-2 font-medium">
+                        p-value
+                      </th>
+                      <th class="text-center text-slate-500 pb-2 font-medium">
+                        Significativo
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template
+                      x-for="row in results?.significance || []"
+                      :key="row.par">
+                      <tr class="border-t border-navy-700">
+                        <td
+                          class="py-2 text-slate-300 font-mono"
+                          x-text="row.par"></td>
+                        <td
+                          class="py-2 text-center font-mono"
+                          :class="row.pearson_r < 0 ? 'text-rose-400' : 'text-emerald-400'"
+                          x-text="row.pearson_r?.toFixed(4)"></td>
+                        <td
+                          class="py-2 text-center font-mono text-slate-400"
+                          x-text="row.p_value < 0.0001 ? '< 0.0001' : row.p_value?.toFixed(6)"></td>
+                        <td class="py-2 text-center">
+                          <span
+                            :class="row.significativo ? 'badge-pos' : 'badge-neu'"
+                            class="px-2 py-0.5 rounded-full text-xs font-semibold"
+                            x-text="row.significativo ? '✓ Sim' : '— Não'"></span>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ TAB: MODELOS ══ -->
+        <div x-show="activeTab === 'models'" x-cloak>
+          <div
+            x-show="!results"
+            class="card p-12 text-center text-slate-500 text-sm">
+            Execute o pipeline para ver os resultados dos modelos.
+          </div>
+          <div x-show="results" class="space-y-5">
+            <!-- Metric cards row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- LR -->
+              <div class="card p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span
+                    class="text-xs uppercase tracking-widest text-slate-500 font-semibold"
+                    >Regressão Linear</span
+                  >
+                  <span
+                    class="badge-neu px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >LR</span
+                  >
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-cyan-400"
+                      x-text="results?.models?.linear_regression?.metrics?.R2?.toFixed(3)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">R²</div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-amber-400"
+                      x-text="results?.models?.linear_regression?.metrics?.RMSE?.toFixed(3)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">RMSE</div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-slate-300"
+                      x-text="results?.models?.linear_regression?.metrics?.MAE?.toFixed(3)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">MAE</div>
+                  </div>
+                </div>
+                <div class="border-t border-navy-700 pt-3 space-y-1">
+                  <p class="text-xs text-slate-500 font-semibold mb-1">
+                    Coeficientes
+                  </p>
+                  <template
+                    x-for="[k,v] in Object.entries(results?.models?.linear_regression?.coef || {})"
+                    :key="k">
+                    <div class="flex justify-between text-xs font-mono">
+                      <span class="text-slate-400" x-text="k"></span>
+                      <span
+                        :class="v >= 0 ? 'text-emerald-400' : 'text-rose-400'"
+                        x-text="(v >= 0 ? '+' : '') + v.toFixed(4)"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- ARIMA -->
+              <div class="card p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span
+                    class="text-xs uppercase tracking-widest text-slate-500 font-semibold"
+                    >ARIMA (1,1,1)</span
+                  >
+                  <span
+                    class="badge-neu px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >TS</span
+                  >
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-cyan-400"
+                      x-text="results?.models?.arima?.aic?.toFixed(2)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">AIC</div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-amber-400"
+                      x-text="results?.models?.arima?.bic?.toFixed(2)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">BIC</div>
+                  </div>
+                </div>
+                <div class="border-t border-navy-700 pt-3">
+                  <p class="text-xs text-slate-500 font-semibold mb-1">
+                    Previsão (próximos dias)
+                  </p>
+                  <div class="space-y-0.5 max-h-32 overflow-y-auto pr-1">
+                    <template
+                      x-for="[date, val] in Object.entries(results?.models?.arima?.forecast || {}).slice(0, 10)"
+                      :key="date">
+                      <div class="flex justify-between text-xs font-mono">
+                        <span
+                          class="text-slate-500"
+                          x-text="date.split('T')[0]"></span>
+                        <span
+                          class="text-emerald-400"
+                          x-text="'R$ ' + parseFloat(val).toFixed(4)"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RF -->
+              <div class="card p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span
+                    class="text-xs uppercase tracking-widest text-slate-500 font-semibold"
+                    >Random Forest</span
+                  >
+                  <span
+                    class="badge-pos px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >RF</span
+                  >
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-cyan-400"
+                      x-text="results?.models?.random_forest?.metrics?.R2?.toFixed(3)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">R²</div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-amber-400"
+                      x-text="results?.models?.random_forest?.metrics?.RMSE?.toFixed(3)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">RMSE</div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-lg font-bold font-mono text-slate-300"
+                      x-text="results?.models?.random_forest?.metrics?.MAE?.toFixed(3)"></div>
+                    <div class="text-xs text-slate-500 mt-0.5">MAE</div>
+                  </div>
+                </div>
+                <div class="border-t border-navy-700 pt-3 space-y-1">
+                  <p class="text-xs text-slate-500 font-semibold mb-1">
+                    Feature Importance
+                  </p>
+                  <template x-for="[k,v] in sortedImportance()" :key="k">
+                    <div class="space-y-0.5">
+                      <div class="flex justify-between text-xs font-mono">
+                        <span class="text-slate-400" x-text="k"></span>
+                        <span
+                          class="text-amber-400"
+                          x-text="(v * 100).toFixed(1) + '%'"></span>
+                      </div>
+                      <div
+                        class="w-full bg-navy-900 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          class="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all"
+                          :style="'width:' + (v * 100) + '%'"></div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ TAB: LOGS ══ -->
+        <div x-show="activeTab === 'logs'" x-cloak>
+          <div class="card overflow-hidden">
+            <div
+              class="flex items-center justify-between px-4 py-3 border-b border-navy-700">
+              <div class="flex items-center gap-2">
+                <div class="flex gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                  <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                  <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                </div>
+                <span class="text-xs text-slate-500 font-mono ml-1"
+                  >pipeline · stdout</span
+                >
+              </div>
+              <button
+                @click="logs = []"
+                class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                Limpar
+              </button>
+            </div>
+            <div
+              id="log-container"
+              class="bg-navy-900 p-4 h-[420px] overflow-y-auto font-mono text-xs space-y-0.5"
+              x-ref="logContainer">
+              <div x-show="logs.length === 0" class="text-slate-600 italic">
+                // Aguardando execução do pipeline…
+              </div>
+              <template x-for="(line, i) in logs" :key="i">
+                <div
+                  class="log-line leading-relaxed"
+                  :class="{
+                'text-emerald-400': line.includes('[chart]') || line.includes('[json]') || line.includes('concluído') || line.includes('Pipeline iniciado'),
+                'text-rose-400': line.toLowerCase().includes('erro') || line.toLowerCase().includes('error') || line.toLowerCase().includes('traceback'),
+                'text-amber-400': line.includes('[email]') || line.includes('[telegram]') || line.includes('[BCB]'),
+                'text-cyan-400': line.includes('===') || line.includes('PI-V'),
+                'text-slate-400': !line.includes('[') && !line.includes('==='),
+              }"
+                  x-text="'$ ' + line"></div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ══ LIGHTBOX ══ -->
+    <div
+      x-show="lightbox"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      @click="lightbox = null"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <img
+        :src="lightbox"
+        class="max-w-full max-h-full rounded-xl shadow-2xl"
+        @click.stop />
+    </div>
+
+    <script>
+      function app() {
+        return {
+          activeTab: "charts",
+          running: false,
+          results: null,
+          charts: [],
+          logs: [],
+          lightbox: null,
+          ts: Date.now(),
+          now: "",
+          form: {
+            start: "2014-01-01",
+            end: "",
+          },
+          tabs: [
+            {
+              id: "charts",
+              label: "Gráficos",
+              icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+            },
+            {
+              id: "correlation",
+              label: "Correlação",
+              icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>',
+            },
+            {
+              id: "models",
+              label: "Modelos",
+              icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>',
+            },
+            {
+              id: "logs",
+              label: "Logs",
+              icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>',
+            },
+          ],
+          periods: [
+            { label: "📅 Desde 2014 (padrão)", start: "2014-01-01", end: "" },
+            { label: "📅 Últimos 5 anos", start: "2021-01-01", end: "" },
+            { label: "📅 Últimos 3 anos", start: "2023-01-01", end: "" },
+            { label: "📅 Últimos 2 anos", start: "2024-01-01", end: "" },
+            { label: "📅 Último ano", start: "2025-01-01", end: "" },
+            {
+              label: "📅 2020–2022 (Covid)",
+              start: "2020-01-01",
+              end: "2022-12-31",
+            },
+          ],
+
+          init() {
+            this.updateClock();
+            setInterval(() => this.updateClock(), 1000);
+            this.loadCharts();
+            this.loadResults();
+          },
+
+          updateClock() {
+            this.now = new Date().toLocaleTimeString("pt-BR");
+          },
+
+          setQuickPeriod(p) {
+            this.form.start = p.start;
+            this.form.end = p.end;
+          },
+
+          async loadCharts() {
+            try {
+              const r = await fetch("/api/charts");
+              this.charts = await r.json();
+              this.ts = Date.now();
+            } catch {}
+          },
+
+          async loadResults() {
+            try {
+              const r = await fetch("/api/results");
+              if (r.ok) this.results = await r.json();
+            } catch {}
+          },
+
+          runPipeline() {
+            if (this.running) return;
+            this.running = true;
+            this.logs = [];
+            this.activeTab = "logs";
+
+            const params = new URLSearchParams({ start: this.form.start });
+            if (this.form.end) params.set("end", this.form.end);
+
+            const es = new EventSource("/api/run?" + params.toString());
+
+            es.onmessage = (e) => {
+              const line = e.data;
+              if (line) {
+                this.logs.push(line);
+                this.$nextTick(() => {
+                  const el = this.$refs.logContainer;
+                  if (el) el.scrollTop = el.scrollHeight;
+                });
+              }
+            };
+
+            es.addEventListener("end", async (e) => {
+              es.close();
+              this.running = false;
+              await this.loadCharts();
+              await this.loadResults();
+              if (e.data === "success") {
+                this.logs.push("✓ Pipeline concluído com sucesso.");
+                this.activeTab = "charts";
+              } else {
+                this.logs.push("✗ Pipeline encerrado com erro.");
+              }
+            });
+
+            es.onerror = () => {
+              es.close();
+              this.running = false;
+              this.logs.push("[ERRO] Conexão com o servidor perdida.");
+            };
+          },
+
+          get pearsonCols() {
+            if (!this.results?.pearson_matrix) return [];
+            return Object.keys(this.results.pearson_matrix);
+          },
+
+          corrFmt(v) {
+            if (v === undefined || v === null) return "—";
+            return parseFloat(v).toFixed(3);
+          },
+
+          corrClass(v) {
+            if (v === undefined || v === null) return "badge-neu";
+            const n = parseFloat(v);
+            if (Math.abs(n) === 1) return "text-slate-500";
+            if (n >= 0.5) return "badge-pos";
+            if (n <= -0.5) return "badge-neg";
+            return "badge-neu";
+          },
+
+          sortedImportance() {
+            const imp = this.results?.models?.random_forest?.feature_importance;
+            if (!imp) return [];
+            return Object.entries(imp).sort((a, b) => b[1] - a[1]);
+          },
+
+          chartLabel(filename) {
+            const map = {
+              "dual_line_ibovespa_dolar.png": "Ibovespa vs Dólar",
+              "selic_vs_ibovespa.png": "Selic vs Ibovespa",
+              "selic_vs_dolar_brl.png": "Selic vs Dólar",
+              "heatmap_correlacao.png": "Heatmap de Correlação",
+              "rolling_correlation.png": "Correlação Rolling 30/60/90d",
+              "forecast_arima.png": "Previsão ARIMA — Dólar",
+              "feature_importance_rf.png": "Importância de Features (RF)",
+            };
+            return map[filename] || filename;
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
