@@ -109,22 +109,17 @@ def send_document(file_path: Path | str, caption: str = "") -> dict:
 
 def send_report_bundle(
     summary_text: str,
-    image_paths: list[Path],
-    pdf_path: Path | None = None,
+    pdf_path: Path,
 ) -> None:
-    """Envia resumo + gráficos + PDF em sequência.
+    """Envia resumo executivo + PDF consolidado em sequência.
 
     Args:
         summary_text: Texto de resumo executivo.
-        image_paths:  Lista de caminhos de gráficos.
-        pdf_path:     Caminho do PDF consolidado (opcional).
+        pdf_path:     Caminho do PDF consolidado.
     """
     send_message(summary_text)
-    for img in image_paths:
-        try:
-            send_photo(img)
-        except Exception as exc:
-            print(f"[telegram] Falha ao enviar {img}: {exc}")
 
-    if pdf_path and pdf_path.exists():
-        send_document(pdf_path, caption="Relatório técnico completo")
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"PDF do relatorio nao encontrado: {pdf_path}")
+
+    send_document(pdf_path, caption="Relatorio tecnico completo em PDF")

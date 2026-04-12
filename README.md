@@ -1,236 +1,220 @@
-# PI-V — Análise Quantitativa: Ibovespa, Dólar & Política Monetária
+# PI-V — Analise Quantitativa de Ibovespa, Dolar e Politica Monetaria
 
-> Modelo quantitativo de relação entre política monetária (Selic/IPCA), mercado acionário (Ibovespa) e câmbio (USD/BRL) no Brasil — com dashboard web interativo.
+Pipeline de dados macro-financeiros com dashboard web, modelos preditivos e envio automatizado de relatorio consolidado em PDF.
 
----
+## Visao geral
 
-## O que é o projeto
+O projeto PI-V executa um fluxo completo:
 
-O **PI-V** é um pipeline de análise macro-financeira que:
+1. Coleta dados de mercado via yfinance:
+- Ibovespa (^BVSP)
+- Dolar BRL (BRL=X)
+- DXY (DX-Y.NYB)
 
-- Coleta automaticamente dados históricos de **Ibovespa**, **Dólar (USD/BRL)** e **DXY** via `yfinance`, e de **Selic** e **IPCA** via a API pública do Banco Central do Brasil (SGS / `python-bcb`).
-- Calcula a **correlação de Pearson** e **correlações rolling** (janelas de 30, 60 e 90 dias) entre os ativos.
-- Testa a **significância estatística** (p-value, α = 0.05) de cada par de variáveis.
-- Treina três modelos preditivos para o câmbio (USD/BRL):
-  - **Regressão Linear Múltipla** — interpretável e explicativa.
-  - **ARIMA(1,1,1)** — captura padrões temporais (tendência + sazonalidade).
-  - **Random Forest** — captura não-linearidades entre as variáveis.
-- Gera 7 gráficos profissionais salvos em `reports/`.
-- Disponibiliza um **dashboard web** para visualização e controle em tempo real.
-- (Opcional) Envia o relatório automaticamente por **e-mail** e/ou **Telegram**.
+2. Coleta series do Banco Central via python-bcb/SGS:
+- Selic (serie 11)
+- IPCA 12 meses (serie 13522)
+- Cambio BCB (serie 1)
 
----
+3. Faz analise estatistica:
+- Matriz de correlacao de Pearson
+- Correlacao rolling (30, 60 e 90 dias)
+- Teste de significancia (p-value)
+
+4. Treina modelos para previsao do dolar_brl:
+- Regressao Linear Multipla
+- ARIMA(1,1,1)
+- Random Forest Regressor
+
+5. Gera artefatos em reports/:
+- 7 graficos PNG
+- relatorio_plots.pdf (capa + uma pagina por grafico)
+- results.json com metricas e metadados
+
+6. Opcionalmente envia notificacoes:
+- E-mail com anexo PDF
+- Telegram com resumo + PDF
 
 ## Screenshots
 
-![Dashboard — Gráficos](./screenshots/image1.png)
-![Dashboard — Correlação](./screenshots/image2.png)
-![Dashboard — Modelos](./screenshots/image3.png)
-![Dashboard — Logs](./screenshots/image4.png)
-
----
+![Dashboard - Graficos](./screenshots/image1.png)
+![Dashboard - Correlacao](./screenshots/image2.png)
+![Dashboard - Modelos](./screenshots/image3.png)
+![Dashboard - Logs](./screenshots/image4.png)
 
 ## Estrutura do projeto
 
-```
+```text
 PI-V/
+├── app.py
+├── main.py
+├── config/
+│   └── settings.py
 ├── src/
 │   ├── data/
-│   │   ├── market_data.py       ← Ibovespa, Dólar, DXY via yfinance
-│   │   └── bcb_data.py          ← Selic e IPCA via python-bcb (API SGS/BCB)
+│   │   ├── market_data.py
+│   │   └── bcb_data.py
 │   ├── analysis/
-│   │   ├── correlation.py       ← Pearson, rolling correlation, p-value
-│   │   └── models.py            ← LinearRegression, ARIMA, RandomForest
+│   │   ├── correlation.py
+│   │   └── models.py
 │   ├── visualization/
-│   │   └── charts.py            ← Geração e salvamento de gráficos
+│   │   └── charts.py
 │   └── notifications/
-│       ├── email_sender.py      ← Envio por SMTP
-│       └── telegram_bot.py      ← Envio via Bot API do Telegram
-├── config/
-│   └── settings.py              ← Leitura do .env
+│       ├── email_sender.py
+│       └── telegram_bot.py
 ├── templates/
-│   └── index.html               ← Dashboard web (Alpine.js + Tailwind)
-├── reports/                     ← Gráficos e JSON gerados (ignorado pelo git)
-├── app.py                       ← Servidor Flask do dashboard
-├── main.py                      ← Orquestra o pipeline completo (CLI)
+│   └── index.html
+├── static/
+├── reports/
+├── screenshots/
 ├── requirements.txt
-├── .env.example                 ← Modelo de configuração
-├── .gitignore
-└── README.md
+└── .env.example
 ```
 
----
+## Modulos principais
 
-## O que cada módulo faz
-
-| Módulo | Responsabilidade |
+| Modulo | Responsabilidade |
 |---|---|
-| `src/data/market_data.py` | Baixa preços de fechamento de `^BVSP`, `BRL=X` e `DX-Y.NYB` via `yfinance` |
-| `src/data/bcb_data.py` | Séries 11 (Selic) e 13522 (IPCA 12m) via `python-bcb` |
-| `src/analysis/correlation.py` | `pearson_matrix`, `rolling_correlation`, `correlation_significance` |
-| `src/analysis/models.py` | `linear_regression_model`, `arima_model`, `random_forest_model` |
-| `src/visualization/charts.py` | Gráfico duplo, heatmap, rolling, forecast ARIMA, feature importance |
-| `src/notifications/email_sender.py` | Envia PDF + imagens via SMTP com TLS |
-| `src/notifications/telegram_bot.py` | Envia mensagem, fotos e documentos via Telegram Bot API |
-| `config/settings.py` | Carrega variáveis do `.env` (tokens, e-mails, período padrão) |
-| `app.py` | Servidor Flask: dashboard web + API REST + streaming de logs via SSE |
-| `main.py` | Pipeline completo via CLI: coleta → análise → gráficos → modelos → (envio) |
+| src/data/market_data.py | Download de Ibovespa, dolar_brl e dxy via yfinance |
+| src/data/bcb_data.py | Download de selic, ipca_12m e cambio_bcb via BCB/SGS |
+| src/analysis/correlation.py | Pearson, rolling_correlation e teste de significancia |
+| src/analysis/models.py | Regressao Linear, ARIMA e Random Forest |
+| src/visualization/charts.py | Geracao de PNGs e consolidacao em PDF (PdfPages) |
+| src/notifications/email_sender.py | Envio SMTP com anexos (PDF com MIME apropriado) |
+| src/notifications/telegram_bot.py | Envio de mensagem e documento via Telegram Bot API |
+| main.py | Orquestracao do pipeline e disparo opcional de envio |
+| app.py | Dashboard Flask + APIs + stream de logs (SSE) |
 
----
+## Instalacao
 
-## Instalação
-
-### 1. Clone o repositório e entre na pasta
+1. Clonar e entrar na pasta
 
 ```bash
-git clone <url-do-repositório>
+git clone <url-do-repositorio>
 cd PI-V
 ```
 
-### 2. Crie e ative o ambiente virtual
+2. Criar ambiente virtual
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate       # Linux / macOS
-# .venv\Scripts\activate        # Windows
+source .venv/bin/activate
 ```
 
-### 3. Instale as dependências
+3. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## Configuração
+## Configuracao
 
 ```bash
 cp .env.example .env
 ```
 
-Edite o `.env` com suas credenciais:
+Preencha o arquivo .env:
 
 ```env
-# Telegram Bot
 TELEGRAM_TOKEN=seu_token_aqui
 TELEGRAM_CHAT_ID=seu_chat_id_aqui
 
-# E-mail SMTP (ex.: Gmail com App Password)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=seu_email@gmail.com
 EMAIL_PASS=sua_senha_de_app
 EMAIL_TO=destinatario@email.com
 
-# Período de coleta padrão
 DEFAULT_START=2014-01-01
 ```
 
-> As notificações são **opcionais** — o pipeline roda normalmente sem `.env` preenchido.
-
----
+Observacoes:
+- As notificacoes sao opcionais.
+- O pipeline roda sem enviar nada se voce nao usar --email ou --telegram.
+- Se usar envio, as credenciais correspondentes precisam estar configuradas.
+- Consultas ao BCB com intervalo maior que 10 anos sao quebradas automaticamente em blocos.
+- Em caso de timeout do BCB, o sistema faz retry automatico e fallback por serie para aumentar a robustez.
 
 ## Como executar
 
-### Dashboard Web (recomendado)
+### CLI
 
 ```bash
-source .venv/bin/activate
-python3 app.py
-# Abra http://localhost:5000
-```
-
-O dashboard oferece:
-
-| Aba | Conteúdo |
-|---|---|
-| **Gráficos** | Grid com os 7 charts; clique para abrir em tamanho real |
-| **Correlação** | Heatmap colorido (Pearson) + tabela de p-values com badge ✓/— |
-| **Modelos** | Cards com R², RMSE, MAE; coeficientes LR; previsão ARIMA; barras de feature importance RF |
-| **Logs** | Terminal ao vivo com streaming da saída do pipeline |
-
-A sidebar permite selecionar o período e clicar **Executar** para rodar o pipeline sem sair do browser.
-
-### CLI (linha de comando)
-
-```bash
-# pipeline completo (sem envio de notificações)
+# Pipeline completo sem envio
 python3 main.py
 
-# Período personalizado
+# Periodo personalizado
 python3 main.py --start 2018-01-01 --end 2024-12-31
 
-# Com envio por e-mail
+# Envio por e-mail
 python3 main.py --email
 
-# Com envio pelo Telegram
+# Envio por Telegram
 python3 main.py --telegram
 
 # Ambos
 python3 main.py --email --telegram
 ```
 
-Os gráficos ficam salvos em `reports/`.
+### Dashboard web
 
----
+```bash
+python3 app.py
+```
+
+Abra: http://localhost:5000
+
+No dashboard, voce consegue:
+- Executar pipeline por periodo
+- Acompanhar logs em tempo real
+- Ver graficos, correlacoes e metricas dos modelos
+
+## Artefatos gerados
+
+Arquivos gerados em reports/ apos cada execucao:
+
+- dual_line_ibovespa_dolar.png
+- selic_vs_ibovespa.png
+- selic_vs_dolar_brl.png
+- heatmap_correlacao.png
+- rolling_correlation.png
+- forecast_arima.png
+- feature_importance_rf.png
+- relatorio_plots.pdf
+- results.json
+
+Sobre o PDF:
+- Gerado automaticamente no pipeline.
+- Inclui capa e paginas de plot com layout padronizado.
+- Utilizado como anexo no e-mail e como documento no Telegram.
 
 ## API do dashboard
 
-| Método | Rota | Descrição |
+| Metodo | Rota | Descricao |
 |---|---|---|
-| `GET` | `/` | Dashboard web |
-| `GET` | `/api/run?start=&end=` | Executa pipeline (SSE — stream de logs ao vivo) |
-| `GET` | `/api/results` | Último `results.json` (correlações + métricas dos modelos) |
-| `GET` | `/api/charts` | Lista de PNGs gerados |
-| `GET` | `/reports/<arquivo>` | Serve gráficos da pasta `reports/` |
+| GET | / | Interface web |
+| GET | /api/run?start=&end= | Executa pipeline com stream SSE de logs |
+| GET | /api/results | Retorna o ultimo results.json |
+| GET | /api/charts | Lista somente PNGs de reports/ |
+| GET | /reports/<arquivo> | Serve arquivos de reports/ (PNG, PDF, JSON etc.) |
 
----
+## Dependencias
 
-## Gráficos gerados
+Dependencias principais usadas no projeto:
 
-| Arquivo | Conteúdo |
-|---|---|
-| `dual_line_ibovespa_dolar.png` | Ibovespa vs Dólar — dois eixos Y |
-| `selic_vs_ibovespa.png` | Selic vs Ibovespa |
-| `selic_vs_dolar_brl.png` | Selic vs Dólar |
-| `heatmap_correlacao.png` | Matriz de correlação de Pearson |
-| `rolling_correlation.png` | Correlação rolling 30/60/90 dias |
-| `forecast_arima.png` | Previsão ARIMA com IC 95% |
-| `feature_importance_rf.png` | Importância de features (Random Forest) |
+- yfinance
+- pandas
+- numpy
+- matplotlib
+- seaborn
+- statsmodels
+- scikit-learn
+- scipy
+- requests
+- python-dotenv
+- python-bcb
+- flask
 
----
-
-## Fundamentação teórica (resumo)
-
-| Cenário | Efeito esperado |
-|---|---|
-| **Juros baixos** | Crédito barato → incentivo a risco → ↑ Ibovespa · ↓ Dólar |
-| **Juros altos** | Renda fixa mais atrativa → migração de capital → ↓ Ibovespa · ↑ Dólar |
-| **Inflação alta** | Pressão cambial → ↑ Dólar |
-
-Na prática, fatores externos (Fed, commodities, risco fiscal) podem distorcer essas relações — por isso o projeto mede a correlação empiricamente e não apenas teoricamente.
-
----
-
-## Dependências principais
-
-| Pacote | Uso |
-|---|---|
-| `yfinance` | Dados de mercado (Ibovespa, Dólar, DXY) |
-| `pandas` / `numpy` | Manipulação de dados |
-| `matplotlib` / `seaborn` | Visualização |
-| `statsmodels` | Modelo ARIMA |
-| `scikit-learn` | Regressão Linear + Random Forest |
-| `scipy` | Teste de significância (p-value) |
-| `flask` | Dashboard web e API REST |
-| `python-bcb` | Séries do BCB (Selic, IPCA) via API SGS |
-| `requests` | Telegram Bot API |
-| `python-dotenv` | Leitura do `.env` |
-| `reportlab` | Geração de PDF |
-
----
-
-## Licença
+## Licenca
 
 MIT

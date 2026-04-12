@@ -12,6 +12,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
+from email.mime.application import MIMEApplication
 from email import encoders
 from pathlib import Path
 
@@ -52,9 +53,15 @@ def send_report(
                 print(f"[email] Aviso: arquivo não encontrado → {file_path}")
                 continue
             with open(file_path, "rb") as f:
+                payload = f.read()
+
+            if file_path.suffix.lower() == ".pdf":
+                part = MIMEApplication(payload, _subtype="pdf")
+            else:
                 part = MIMEBase("application", "octet-stream")
-                part.set_payload(f.read())
-            encoders.encode_base64(part)
+                part.set_payload(payload)
+                encoders.encode_base64(part)
+
             part.add_header(
                 "Content-Disposition",
                 f"attachment; filename={file_path.name}",
