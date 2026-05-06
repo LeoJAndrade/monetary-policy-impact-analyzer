@@ -18,6 +18,9 @@ O **PI-V** é um pipeline de análise macro-financeira que:
 - Gera 7 gráficos profissionais salvos em `reports/`.
 - Disponibiliza um **dashboard web** para visualização e controle em tempo real.
 - (Opcional) Envia o relatório automaticamente por **e-mail** e/ou **Telegram**.
+- Integração com um **Agente de IA** especialista em política monetária (usando o modelo `gpt-oss-120b` via **Groq API**).
+- **Banco de dados local (SQLite)** para armazenar histórico de conversas do usuário.
+- **Webhook configurado para Telegram**, permitindo que o usuário interaja em tempo real com o agente.
 
 ---
 
@@ -46,8 +49,12 @@ PI-V/
 │   └── notifications/
 │       ├── email_sender.py      ← Envio por SMTP
 │       └── telegram_bot.py      ← Envio via Bot API do Telegram
+├── orchestrator/
+│   └── ai_agent.py              ← Agente de IA integrado à API da Groq
 ├── config/
-│   └── settings.py              ← Leitura do .env
+│   ├── settings.py              ← Leitura do .env
+│   └── db_settings.py           ← Configuração e acesso ao SQLite
+├── webhook.py                   ← Endpoint FastAPI para o Webhook do Telegram
 ├── templates/
 │   └── index.html               ← Dashboard web (Alpine.js + Tailwind)
 ├── reports/                     ← Gráficos e JSON gerados (ignorado pelo git)
@@ -72,7 +79,10 @@ PI-V/
 | `src/visualization/charts.py` | Gráfico duplo, heatmap, rolling, forecast ARIMA, feature importance |
 | `src/notifications/email_sender.py` | Envia PDF + imagens via SMTP com TLS |
 | `src/notifications/telegram_bot.py` | Envia mensagem, fotos e documentos via Telegram Bot API |
-| `config/settings.py` | Carrega variáveis do `.env` (tokens, e-mails, período padrão) |
+| `config/settings.py` | Carrega variáveis do `.env` (tokens, e-mails, chaves de API) |
+| `config/db_settings.py`| Gerencia a inicialização e acesso ao banco de dados SQLite |
+| `orchestrator/ai_agent.py`| Processa mensagens com o modelo de IA `gpt-oss-120b` via Groq API |
+| `webhook.py` | Servidor FastAPI que escuta as mensagens do Telegram e orquestra a IA |
 | `app.py` | Servidor Flask: dashboard web + API REST + streaming de logs via SSE |
 | `main.py` | Pipeline completo via CLI: coleta → análise → gráficos → modelos → (envio) |
 
@@ -116,6 +126,9 @@ Edite o `.env` com suas credenciais:
 TELEGRAM_TOKEN=seu_token_aqui
 TELEGRAM_CHAT_ID=seu_chat_id_aqui
 
+# Groq API (Agente de IA)
+GROQ_API_KEY=sua_chave_groq_aqui
+
 # E-mail SMTP (ex.: Gmail com App Password)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
@@ -151,6 +164,19 @@ O dashboard oferece:
 | **Logs** | Terminal ao vivo com streaming da saída do pipeline |
 
 A sidebar permite selecionar o período e clicar **Executar** para rodar o pipeline sem sair do browser.
+
+### Webhook do Telegram (Agente de IA)
+
+Para conversar com a IA pelo Telegram:
+1. Inicie o servidor FastAPI:
+```bash
+python3 webhook.py
+```
+2. Em um novo terminal, exponha a porta local usando o `ngrok`:
+```bash
+ngrok http 8000
+```
+3. Registre a URL HTTPS gerada na API do Telegram (`setWebhook`).
 
 ### CLI (linha de comando)
 
@@ -228,6 +254,8 @@ Na prática, fatores externos (Fed, commodities, risco fiscal) podem distorcer e
 | `requests` | Telegram Bot API |
 | `python-dotenv` | Leitura do `.env` |
 | `reportlab` | Geração de PDF |
+| `openai` | Comunicação com a Groq API |
+| `fastapi` / `uvicorn` | Criação e execução do servidor Webhook |
 
 ---
 

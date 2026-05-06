@@ -34,5 +34,8 @@ ROLLING_WINDOWS: list[int] = [30, 60, 90]   # dias
 # -------------------------------------------------------------------
 # Período de coleta padrão
 # -------------------------------------------------------------------
-DEFAULT_START: str = os.getenv("DEFAULT_START", "2014-01-01")
+DEFAULT_START: str = os.getenv("DEFAULT_START", "2018-01-01")
 DEFAULT_END: str | None = None   # None = hoje
+
+# Chave api do Groq
+GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")

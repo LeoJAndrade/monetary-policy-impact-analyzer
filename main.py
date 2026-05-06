@@ -21,10 +21,12 @@ Uso:
 
 from __future__ import annotations
 
+import requests
 import argparse
 import sys
 from pathlib import Path
 from datetime import date
+from fastapi import FastAPI
 
 # Garante que src/ e config/ sejam encontrados ao rodar da raiz do projeto
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -57,7 +59,7 @@ from src.visualization.charts import (
 import pandas as pd
 import json
 
-
+app = FastAPI()
 REPORTS_DIR = Path(__file__).resolve().parent / "reports"
 
 

@@ -35,22 +35,27 @@ def _check_config() -> None:
         )
 
 
-def send_message(text: str, parse_mode: str = "Markdown") -> dict:
+def send_message(text: str, parse_mode: str | None = None, chat_id: str | int | None = None) -> dict:
     """Envia mensagem de texto.
 
     Args:
         text:       Texto da mensagem (suporta Markdown ou HTML).
-        parse_mode: 'Markdown' ou 'HTML'.
+        parse_mode: 'Markdown', 'HTML' ou None.
+        chat_id:    ID do chat (opcional, se não enviado usa o do .env).
 
     Returns:
         Resposta da API como dict.
     """
-    _check_config()
+    if chat_id is None:
+        _check_config()
+        
     payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": chat_id or TELEGRAM_CHAT_ID,
         "text": text,
-        "parse_mode": parse_mode,
     }
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
+        
     resp = requests.post(_url("sendMessage"), json=payload, timeout=10)
     resp.raise_for_status()
     print("[telegram] Mensagem enviada.")

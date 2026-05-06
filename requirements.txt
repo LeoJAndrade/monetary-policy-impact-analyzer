@@ -11,3 +11,7 @@ python-dotenv>=1.0.0
 reportlab>=4.1.0
 python-bcb>=0.3.0
 flask>=3.0.0
+fastapi
+openai
+pyngrok
+uvicorn
