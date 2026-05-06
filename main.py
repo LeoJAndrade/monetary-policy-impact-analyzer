@@ -28,7 +28,6 @@ from pathlib import Path
 from datetime import date
 from fastapi import FastAPI
 
-# Garante que src/ e config/ sejam encontrados ao rodar da raiz do projeto
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config.settings import DEFAULT_START
@@ -54,6 +53,7 @@ from src.visualization.charts import (
     rolling_correlation_chart,
     forecast_chart,
     feature_importance_chart,
+    export_plots_pdf,
 )
 
 import pandas as pd
@@ -67,6 +67,7 @@ REPORTS_DIR = Path(__file__).resolve().parent / "reports"
 # Results persistence
 # ---------------------------------------------------------------------------
 
+
 def save_results_json(results: dict) -> Path:
     """Serializa métricas e metadados do pipeline para reports/results.json."""
     import numpy as np
@@ -79,7 +80,7 @@ def save_results_json(results: dict) -> Path:
             return float(obj)
         if isinstance(obj, (np.bool_,)):
             return bool(obj)
-        if hasattr(obj, 'isoformat'):   # Timestamp / datetime
+        if hasattr(obj, "isoformat"):  # Timestamp / datetime
             return obj.isoformat()
         return str(obj)
 
@@ -100,8 +101,12 @@ def save_results_json(results: dict) -> Path:
             "arima": {
                 "aic": arima["aic"],
                 "bic": arima["bic"],
-                "forecast": {k.isoformat() if hasattr(k, 'isoformat') else str(k): round(float(v), 4)
-                             for k, v in arima["forecast"].items()},
+                "forecast": {
+                    k.isoformat() if hasattr(k, "isoformat") else str(k): round(
+                        float(v), 4
+                    )
+                    for k, v in arima["forecast"].items()
+                },
             },
             "random_forest": {
                 "metrics": {k: float(v) for k, v in rf["metrics"].items()},
@@ -109,6 +114,7 @@ def save_results_json(results: dict) -> Path:
             },
         },
         "charts": [p.name for p in results["charts"]],
+        "pdf_report": results["pdf_report"].name if results.get("pdf_report") else None,
         "dataset_rows": len(results["dataset"]),
         "date_range": {
             "start": str(results["dataset"].index.min().date()),
@@ -125,6 +131,7 @@ def save_results_json(results: dict) -> Path:
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
+
 
 def run_pipeline(start: str, end: str | None = None) -> dict:
     """Executa o pipeline completo e retorna artefatos gerados.
@@ -178,8 +185,11 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
 
     if "selic" in df_full.columns:
         chart_paths.append(selic_vs_asset_chart(df_full, asset_col="ibovespa"))
-        chart_paths.append(selic_vs_asset_chart(df_full, asset_col="dolar_brl",
-                                                 filename="selic_vs_dolar_brl.png"))
+        chart_paths.append(
+            selic_vs_asset_chart(
+                df_full, asset_col="dolar_brl", filename="selic_vs_dolar_brl.png"
+            )
+        )
 
     chart_paths.append(correlation_heatmap(pearson))
     chart_paths.append(rolling_correlation_chart(rolling))
@@ -190,8 +200,11 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
     print("\n[4/5] Treinando modelos preditivos...")
 
     # Dataset para modelos — apenas colunas numéricas sem NaN
-    model_cols = [c for c in ["ibovespa", "selic", "ipca_12m", "dxy", "dolar_brl"]
-                  if c in df_full.columns]
+    model_cols = [
+        c
+        for c in ["ibovespa", "selic", "ipca_12m", "dxy", "dolar_brl"]
+        if c in df_full.columns
+    ]
     df_model = df_full[model_cols].dropna()
 
     # --- Regressão Linear ---
@@ -221,10 +234,21 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
     # ------------------------------------------------------------------
     print(f"\n[5/5] Pipeline concluído. {len(chart_paths)} gráficos em reports/\n")
 
+    pdf_report = export_plots_pdf(
+        image_paths=chart_paths,
+        title="PI-V — Relatorio Tecnico",
+        subtitle=f"Periodo analisado: {start} a {end}",
+    )
+
     payload = {
         "dataset": df_full,
-        "correlations": {"pearson": pearson, "rolling": rolling, "significance": sig_test},
+        "correlations": {
+            "pearson": pearson,
+            "rolling": rolling,
+            "significance": sig_test,
+        },
         "charts": chart_paths,
+        "pdf_report": pdf_report,
         "models": {
             "linear_regression": lr_result,
             "arima": arima_result,
@@ -261,12 +285,23 @@ def build_summary_text(results: dict) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="PI-V — Pipeline de análise macro-financeira")
-    parser.add_argument("--start", default=DEFAULT_START, help="Data inicial YYYY-MM-DD")
-    parser.add_argument("--end", default=None, help="Data final YYYY-MM-DD (padrão: hoje)")
-    parser.add_argument("--email", action="store_true", help="Enviar relatório por e-mail")
-    parser.add_argument("--telegram", action="store_true", help="Enviar relatório pelo Telegram")
+    parser = argparse.ArgumentParser(
+        description="PI-V — Pipeline de análise macro-financeira"
+    )
+    parser.add_argument(
+        "--start", default=DEFAULT_START, help="Data inicial YYYY-MM-DD"
+    )
+    parser.add_argument(
+        "--end", default=None, help="Data final YYYY-MM-DD (padrão: hoje)"
+    )
+    parser.add_argument(
+        "--email", action="store_true", help="Enviar relatório por e-mail"
+    )
+    parser.add_argument(
+        "--telegram", action="store_true", help="Enviar relatório pelo Telegram"
+    )
     return parser.parse_args()
 
 
@@ -276,11 +311,13 @@ if __name__ == "__main__":
 
     if args.email:
         from src.notifications.email_sender import send_report
-        send_report(attachments=results["charts"])
+
+        send_report(attachments=[results["pdf_report"]])
 
     if args.telegram:
         from src.notifications.telegram_bot import send_report_bundle
+
         send_report_bundle(
             summary_text=build_summary_text(results),
-            image_paths=results["charts"],
+            pdf_path=results["pdf_report"],
         )
