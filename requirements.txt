@@ -15,3 +15,5 @@ fastapi
 openai
 pyngrok
 uvicorn
+pydantic
+inspect

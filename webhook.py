@@ -9,7 +9,8 @@ import uvicorn
 
 app = FastAPI()
 
-@app.post('/webhook/telegram')
+
+@app.post("/webhook/telegram")
 async def recebei_webhook(request: Request):
 
     # Criando tabelas
@@ -35,6 +36,7 @@ async def recebei_webhook(request: Request):
 
     # 2. Verifica se a mensagem é antiga (mais de 30 segundos)
     import time
+
     if time.time() - message_date_seconds > 30:
         return {"status": "200"}
 
@@ -49,19 +51,22 @@ async def recebei_webhook(request: Request):
 
     # 3. Envia mensagem do usuário para IA
     messages_history = get_conversation_history(chat_id)
-    ai_response = process_message(user_message, messages_history)
-    
+    ai_response = process_message(user_message, messages_history, chat_id)
+
     # Guarda a resposta da IA no banco
     with sqlite3.connect("monetary_analysis.db", timeout=10.0) as connection:
         cursor = connection.cursor()
         sql_ai = "INSERT INTO messages(chat_id, role, message, date) VALUES(?, ?, ?, ?)"
-        cursor.execute(sql_ai, (chat_id, "assistant", ai_response, datetime.now().isoformat()))
+        cursor.execute(
+            sql_ai, (chat_id, "assistant", ai_response, datetime.now().isoformat())
+        )
         connection.commit()
 
     # 4. Enviar mensagem de volta para o chat_id específico
     send_message(text=ai_response, chat_id=chat_id)
 
     return {"status": "200"}
-    
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -35,7 +35,9 @@ def _check_config() -> None:
         )
 
 
-def send_message(text: str, parse_mode: str | None = None, chat_id: str | int | None = None) -> dict:
+def send_message(
+    text: str, parse_mode: str | None = None, chat_id: str | int | None = None
+) -> dict:
     """Envia mensagem de texto.
 
     Args:
@@ -48,38 +50,41 @@ def send_message(text: str, parse_mode: str | None = None, chat_id: str | int | 
     """
     if chat_id is None:
         _check_config()
-        
+
     payload = {
         "chat_id": chat_id or TELEGRAM_CHAT_ID,
         "text": text,
     }
     if parse_mode:
         payload["parse_mode"] = parse_mode
-        
+
     resp = requests.post(_url("sendMessage"), json=payload, timeout=10)
     resp.raise_for_status()
     print("[telegram] Mensagem enviada.")
     return resp.json()
 
 
-def send_photo(image_path: Path | str, caption: str = "") -> dict:
+def send_photo(image_path: Path | str, caption: str = "", chat_id: str | int | None = None) -> dict:
     """Envia imagem (PNG/JPG).
 
     Args:
         image_path: Caminho local da imagem.
         caption:    Legenda opcional.
+        chat_id:    ID do chat (opcional, se não enviado usa o do .env).
 
     Returns:
         Resposta da API como dict.
     """
-    _check_config()
+    if chat_id is None:
+        _check_config()
+        
     image_path = Path(image_path)
     if not image_path.exists():
         raise FileNotFoundError(f"Imagem não encontrada: {image_path}")
 
     with open(image_path, "rb") as f:
         files = {"photo": (image_path.name, f, "image/png")}
-        data = {"chat_id": TELEGRAM_CHAT_ID, "caption": caption}
+        data = {"chat_id": chat_id or TELEGRAM_CHAT_ID, "caption": caption}
         resp = requests.post(_url("sendPhoto"), data=data, files=files, timeout=30)
 
     resp.raise_for_status()
