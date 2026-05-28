@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from datetime import date
+import textwrap
 
 import matplotlib
 
@@ -50,13 +51,14 @@ def _save(fig: plt.Figure, filename: str) -> Path:
 
 
 def export_plots_pdf(
-    image_paths: list[Path],
+    image_paths: list[Path | str],
     filename: str = "relatorio_plots.pdf",
     title: str = "PI-V — Relatorio Tecnico",
     subtitle: str | None = None,
     institution: str = "PI-V",
     author: str = "Sistema PI-V",
     city: str = "Sao Paulo",
+    analyses: dict[str, str] = None,
 ) -> Path:
     """Consolida os plots em PDF com capa em formato proximo ao padrao ABNT."""
     out_path = REPORTS_DIR / filename
@@ -198,11 +200,27 @@ def export_plots_pdf(
 
             ax = fig.add_axes(_norm(draw_x_cm, draw_y_cm, draw_w_cm, draw_h_cm))
             ax.axis("off")
-            ax.imshow(img, interpolation="none", resample=False)
+            ax.imshow(img, aspect="equal")
             for spine in ax.spines.values():
                 spine.set_visible(True)
                 spine.set_linewidth(0.8)
                 spine.set_color("#222222")
+
+            # Adiciona a análise da IA logo abaixo da imagem, se existir
+            if analyses and img_path.name in analyses:
+                wrapped_text = "\n".join(textwrap.wrap(analyses[img_path.name], width=90))
+                box_y = draw_y_cm - 0.5  # 0.5cm abaixo da imagem
+                fig.text(
+                    0.5,
+                    box_y / page_h_cm,
+                    f"Análise da IA:\n{wrapped_text}",
+                    ha="center",
+                    va="top",
+                    fontsize=9,
+                    family="serif",
+                    color="#1e293b",
+                    bbox=dict(facecolor="#f8fafc", edgecolor="#cbd5e1", boxstyle="round,pad=0.5", alpha=0.9)
+                )
 
             # Fonte abaixo da figura
             fig.text(
@@ -358,8 +376,8 @@ def forecast_chart(
     historical: pd.Series,
     forecast: pd.Series,
     conf_int: pd.DataFrame | None = None,
-    title: str = "Previsão ARIMA — Dólar (USD/BRL)",
-    filename: str = "forecast_arima.png",
+    title: str = "Previsão SARIMAX — Dólar (USD/BRL)",
+    filename: str = "forecast_sarimax.png",
 ) -> Path:
     """Plota série histórica + previsão com intervalo de confiança."""
     fig, ax = plt.subplots(figsize=(14, 5))

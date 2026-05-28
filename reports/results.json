@@ -1,209 +1,218 @@
 {
   "pearson_matrix": {
-    "ibovespa": {
-      "ibovespa": 1.0,
-      "dolar_brl": 0.3638,
-      "dxy": 0.5251,
-      "selic": 0.3099,
-      "ipca_12m": 0.3132,
-      "cambio_bcb": 0.9987
-    },
     "dolar_brl": {
-      "ibovespa": 0.3638,
       "dolar_brl": 1.0,
-      "dxy": 0.2418,
-      "selic": 0.6966,
-      "ipca_12m": 0.0778,
-      "cambio_bcb": 0.3652
+      "dxy": 0.0744,
+      "ibovespa": 0.0781,
+      "selic": -0.0393,
+      "ipca_12m": 0.0344,
+      "cambio_bcb": 0.9947
     },
     "dxy": {
-      "ibovespa": 0.5251,
-      "dolar_brl": 0.2418,
+      "dolar_brl": 0.0744,
       "dxy": 1.0,
-      "selic": 0.551,
-      "ipca_12m": 0.0896,
-      "cambio_bcb": 0.5228
+      "ibovespa": -0.6459,
+      "selic": -0.4543,
+      "ipca_12m": 0.3357,
+      "cambio_bcb": 0.0803
+    },
+    "ibovespa": {
+      "dolar_brl": 0.0781,
+      "dxy": -0.6459,
+      "ibovespa": 1.0,
+      "selic": 0.3347,
+      "ipca_12m": -0.3829,
+      "cambio_bcb": 0.0701
     },
     "selic": {
-      "ibovespa": 0.3099,
-      "dolar_brl": 0.6966,
-      "dxy": 0.551,
+      "dolar_brl": -0.0393,
+      "dxy": -0.4543,
+      "ibovespa": 0.3347,
       "selic": 1.0,
-      "ipca_12m": 0.1964,
-      "cambio_bcb": 0.3091
+      "ipca_12m": 0.1458,
+      "cambio_bcb": -0.049
     },
     "ipca_12m": {
-      "ibovespa": 0.3132,
-      "dolar_brl": 0.0778,
-      "dxy": 0.0896,
-      "selic": 0.1964,
+      "dolar_brl": 0.0344,
+      "dxy": 0.3357,
+      "ibovespa": -0.3829,
+      "selic": 0.1458,
       "ipca_12m": 1.0,
-      "cambio_bcb": 0.313
+      "cambio_bcb": 0.0379
     },
     "cambio_bcb": {
-      "ibovespa": 0.9987,
-      "dolar_brl": 0.3652,
-      "dxy": 0.5228,
-      "selic": 0.3091,
-      "ipca_12m": 0.313,
+      "dolar_brl": 0.9947,
+      "dxy": 0.0803,
+      "ibovespa": 0.0701,
+      "selic": -0.049,
+      "ipca_12m": 0.0379,
       "cambio_bcb": 1.0
     }
   },
   "significance": [
     {
-      "par": "ibovespa \u00d7 dolar_brl",
-      "pearson_r": 0.3638,
-      "p_value": 0.0,
-      "significativo": true
-    },
-    {
-      "par": "ibovespa \u00d7 dxy",
-      "pearson_r": 0.5251,
-      "p_value": 0.0,
-      "significativo": true
-    },
-    {
-      "par": "ibovespa \u00d7 selic",
-      "pearson_r": 0.3099,
-      "p_value": 0.0,
-      "significativo": true
-    },
-    {
-      "par": "ibovespa \u00d7 ipca_12m",
-      "pearson_r": 0.3132,
-      "p_value": 0.0,
-      "significativo": true
-    },
-    {
-      "par": "ibovespa \u00d7 cambio_bcb",
-      "pearson_r": 0.9987,
-      "p_value": 0.0,
-      "significativo": true
-    },
-    {
       "par": "dolar_brl \u00d7 dxy",
-      "pearson_r": 0.2418,
-      "p_value": 0.0,
+      "pearson_r": 0.0744,
+      "p_value": 0.016428,
+      "significativo": true
+    },
+    {
+      "par": "dolar_brl \u00d7 ibovespa",
+      "pearson_r": 0.0781,
+      "p_value": 0.011798,
       "significativo": true
     },
     {
       "par": "dolar_brl \u00d7 selic",
-      "pearson_r": 0.6966,
+      "pearson_r": -0.0393,
+      "p_value": 0.205196,
+      "significativo": false
+    },
+    {
+      "par": "dolar_brl \u00d7 ipca_12m",
+      "pearson_r": 0.0344,
+      "p_value": 0.269039,
+      "significativo": false
+    },
+    {
+      "par": "dolar_brl \u00d7 cambio_bcb",
+      "pearson_r": 0.9947,
       "p_value": 0.0,
       "significativo": true
     },
     {
-      "par": "dolar_brl \u00d7 ipca_12m",
-      "pearson_r": 0.0778,
-      "p_value": 0.000288,
-      "significativo": true
-    },
-    {
-      "par": "dolar_brl \u00d7 cambio_bcb",
-      "pearson_r": 0.3652,
+      "par": "dxy \u00d7 ibovespa",
+      "pearson_r": -0.6459,
       "p_value": 0.0,
       "significativo": true
     },
     {
       "par": "dxy \u00d7 selic",
-      "pearson_r": 0.551,
+      "pearson_r": -0.4543,
       "p_value": 0.0,
       "significativo": true
     },
     {
       "par": "dxy \u00d7 ipca_12m",
-      "pearson_r": 0.0896,
-      "p_value": 2.9e-05,
+      "pearson_r": 0.3357,
+      "p_value": 0.0,
       "significativo": true
     },
     {
       "par": "dxy \u00d7 cambio_bcb",
-      "pearson_r": 0.5228,
+      "pearson_r": 0.0803,
+      "p_value": 0.009599,
+      "significativo": true
+    },
+    {
+      "par": "ibovespa \u00d7 selic",
+      "pearson_r": 0.3347,
       "p_value": 0.0,
+      "significativo": true
+    },
+    {
+      "par": "ibovespa \u00d7 ipca_12m",
+      "pearson_r": -0.3829,
+      "p_value": 0.0,
+      "significativo": true
+    },
+    {
+      "par": "ibovespa \u00d7 cambio_bcb",
+      "pearson_r": 0.0701,
+      "p_value": 0.023801,
       "significativo": true
     },
     {
       "par": "selic \u00d7 ipca_12m",
-      "pearson_r": 0.1964,
-      "p_value": 0.0,
+      "pearson_r": 0.1458,
+      "p_value": 2e-06,
       "significativo": true
     },
     {
       "par": "selic \u00d7 cambio_bcb",
-      "pearson_r": 0.3091,
-      "p_value": 0.0,
-      "significativo": true
+      "pearson_r": -0.049,
+      "p_value": 0.114537,
+      "significativo": false
     },
     {
       "par": "ipca_12m \u00d7 cambio_bcb",
-      "pearson_r": 0.313,
-      "p_value": 0.0,
-      "significativo": true
+      "pearson_r": 0.0379,
+      "p_value": 0.223526,
+      "significativo": false
     }
   ],
   "models": {
     "linear_regression": {
       "metrics": {
-        "MAE": 6.4352,
-        "RMSE": 7.4299,
-        "R2": -3.2207
+        "MAE": 0.713,
+        "RMSE": 0.8647,
+        "R2": -28.5988
       },
       "coef": {
-        "ibovespa": 1.570497593067562,
-        "selic": 4.626909543580971,
-        "ipca_12m": -1.4314502400365976,
-        "dxy": -0.05903227966196578
+        "ibovespa": 0.207686376417957,
+        "selic": 0.0442161849562326,
+        "ipca_12m": 0.06438323591092265,
+        "dxy": 0.10338770273670278
       }
     },
-    "arima": {
-      "aic": 2366.07,
-      "bic": 2383.12,
+    "sarimax": {
+      "aic": -3449.97,
+      "bic": -3415.36,
       "forecast": {
-        "2026-05-04T00:00:00": 98.2257,
-        "2026-05-05T00:00:00": 98.2168,
-        "2026-05-06T00:00:00": 98.2219,
-        "2026-05-07T00:00:00": 98.219,
-        "2026-05-08T00:00:00": 98.2206,
-        "2026-05-11T00:00:00": 98.2197,
-        "2026-05-12T00:00:00": 98.2202,
-        "2026-05-13T00:00:00": 98.2199,
-        "2026-05-14T00:00:00": 98.2201,
-        "2026-05-15T00:00:00": 98.22,
-        "2026-05-18T00:00:00": 98.2201,
-        "2026-05-19T00:00:00": 98.22,
-        "2026-05-20T00:00:00": 98.22,
-        "2026-05-21T00:00:00": 98.22,
-        "2026-05-22T00:00:00": 98.22,
-        "2026-05-25T00:00:00": 98.22,
-        "2026-05-26T00:00:00": 98.22,
-        "2026-05-27T00:00:00": 98.22,
-        "2026-05-28T00:00:00": 98.22,
-        "2026-05-29T00:00:00": 98.22,
-        "2026-06-01T00:00:00": 98.22,
-        "2026-06-02T00:00:00": 98.22,
-        "2026-06-03T00:00:00": 98.22,
-        "2026-06-04T00:00:00": 98.22,
-        "2026-06-05T00:00:00": 98.22,
-        "2026-06-08T00:00:00": 98.22,
-        "2026-06-09T00:00:00": 98.22,
-        "2026-06-10T00:00:00": 98.22,
-        "2026-06-11T00:00:00": 98.22,
-        "2026-06-12T00:00:00": 98.22
+        "2026-05-25T00:00:00": 5.0178,
+        "2026-05-26T00:00:00": 5.018,
+        "2026-05-27T00:00:00": 5.0181,
+        "2026-05-28T00:00:00": 5.0181,
+        "2026-05-29T00:00:00": 5.0181,
+        "2026-06-01T00:00:00": 5.0182,
+        "2026-06-02T00:00:00": 5.0182,
+        "2026-06-03T00:00:00": 5.0182,
+        "2026-06-04T00:00:00": 5.0182,
+        "2026-06-05T00:00:00": 5.0182,
+        "2026-06-08T00:00:00": 5.0182,
+        "2026-06-09T00:00:00": 5.0182,
+        "2026-06-10T00:00:00": 5.0182,
+        "2026-06-11T00:00:00": 5.0182,
+        "2026-06-12T00:00:00": 5.0182,
+        "2026-06-15T00:00:00": 5.0182,
+        "2026-06-16T00:00:00": 5.0182,
+        "2026-06-17T00:00:00": 5.0182,
+        "2026-06-18T00:00:00": 5.0182,
+        "2026-06-19T00:00:00": 5.0182,
+        "2026-06-22T00:00:00": 5.0182,
+        "2026-06-23T00:00:00": 5.0182,
+        "2026-06-24T00:00:00": 5.0182,
+        "2026-06-25T00:00:00": 5.0182,
+        "2026-06-26T00:00:00": 5.0182,
+        "2026-06-29T00:00:00": 5.0182,
+        "2026-06-30T00:00:00": 5.0182,
+        "2026-07-01T00:00:00": 5.0182,
+        "2026-07-02T00:00:00": 5.0182,
+        "2026-07-03T00:00:00": 5.0182
       }
     },
     "random_forest": {
       "metrics": {
-        "MAE": 2.8809,
-        "RMSE": 3.181,
-        "R2": 0.2264
+        "MAE": 0.3267,
+        "RMSE": 0.3873,
+        "R2": -4.9394
       },
       "feature_importance": {
-        "selic": 0.7468,
-        "ipca_12m": 0.1142,
-        "dxy": 0.073,
-        "ibovespa": 0.0661
+        "ibovespa": 0.4397,
+        "ipca_12m": 0.3129,
+        "selic": 0.1862,
+        "dxy": 0.0613
       }
     }
+  },
+  "analyses": {
+    "selic_vs_dolar_brl.png": "**An\u00e1lise do gr\u00e1fico *selic_vs_dolar_brl.png***  \n\nA correla\u00e7\u00e3o entre a taxa Selic e o c\u00e2mbio D\u00f3lar/Real \u00e9 de **\u20110,0393**, praticamente nula. Esse valor indica que, no per\u00edodo analisado, varia\u00e7\u00f5es na taxa b\u00e1sica de juros n\u00e3o t\u00eam rela\u00e7\u00e3o estatisticamente significativa com as oscila\u00e7\u00f5es do d\u00f3lar. Assim, movimentos cambiais parecem ser conduzidos por fatores externos (commodities, risco\u2011pa\u00eds, pol\u00edtica monet\u00e1ria dos EUA) mais do que por ajustes da Selic.\n\nPara a pol\u00edtica monet\u00e1ria brasileira, o resultado sugere que altera\u00e7\u00f5es na Selic n\u00e3o s\u00e3o um instrumento eficaz para estabilizar o real frente ao d\u00f3lar. O Banco Central deve, portanto, focar a taxa de juros principalmente nos objetivos de controle da infla\u00e7\u00e3o e de est\u00edmulo ao cr\u00e9dito interno, enquanto a gest\u00e3o do risco cambial deve ser abordada por meio de interven\u00e7\u00f5es pontuais no mercado de FX ou por pol\u00edticas fiscais e de conta corrente que reduzam a vulnerabilidade externa.",
+    "selic_vs_ibovespa.png": "**An\u00e1lise do Gr\u00e1fico \u2013 Selic vs. Ibovespa**\n\nA correla\u00e7\u00e3o entre a taxa Selic e o Ibovespa \u00e9 de **0,3347**, indicando uma rela\u00e7\u00e3o positiva moderada. Quando a Selic sobe, o custo de oportunidade dos investimentos em renda fixa aumenta, o que tende a atrair recursos desses ativos e pode pressionar a bolsa para baixo. Contudo, o valor positivo da correla\u00e7\u00e3o sugere que, at\u00e9 o momento, parte dos investidores ainda v\u00ea o mercado acion\u00e1rio como atrativo, possivelmente devido a expectativas de crescimento corporativo ou a uma percep\u00e7\u00e3o de que a alta da Selic ainda n\u00e3o est\u00e1 totalmente refletida nos pre\u00e7os das a\u00e7\u00f5es.\n\nDo ponto de vista da pol\u00edtica monet\u00e1ria, a correla\u00e7\u00e3o moderada indica que mudan\u00e7as na taxa b\u00e1sica de juros ainda t\u00eam um impacto limitado, mas crescente, sobre o comportamento do Ibovespa. Se o Banco Central mantiver ou intensificar a trajet\u00f3ria de alta da Selic para conter a infla\u00e7\u00e3o, podemos esperar uma press\u00e3o adicional sobre a bolsa, reduzindo a correla\u00e7\u00e3o ao longo do tempo \u00e0 medida que o mercado se ajusta ao novo regime de juros mais elevados. Em contrapartida, uma pol\u00edtica mais acomodat\u00edcia poderia refor\u00e7ar a confian\u00e7a dos investidores e elevar a sensibilidade da bolsa \u00e0s varia\u00e7\u00f5es da Selic.",
+    "dual_line_ibovespa_dolar.png": "**An\u00e1lise do Gr\u00e1fico Dual Line \u2013 Ibovespa vs. D\u00f3lar**  \n\nA correla\u00e7\u00e3o entre o Ibovespa e o d\u00f3lar apresentada (\u202f\u03c1\u202f=\u202f0.0781\u202f) indica praticamente **aus\u00eancia de rela\u00e7\u00e3o linear** entre os movimentos das duas s\u00e9ries no per\u00edodo analisado. Essa baixa correla\u00e7\u00e3o sugere que, para o investidor brasileiro, as varia\u00e7\u00f5es cambiais n\u00e3o t\u00eam sido um determinante significativo dos retornos acion\u00e1rios, permitindo uma maior diversifica\u00e7\u00e3o de risco ao manter posi\u00e7\u00f5es simult\u00e2neas em renda vari\u00e1vel e em ativos atrelados ao d\u00f3lar.\n\nDo ponto de vista da pol\u00edtica monet\u00e1ria, a fraca conex\u00e3o entre o \u00edndice de a\u00e7\u00f5es e a moeda estrangeira reduz a press\u00e3o direta sobre o Comit\u00ea de Pol\u00edtica Monet\u00e1ria (COPOM) para ajustar a taxa Selic em resposta a choques cambiais. Assim, o Banco Central pode focar mais nas metas de infla\u00e7\u00e3o interna e no controle da liquidez, sem precisar compensar oscila\u00e7\u00f5es cambiais que, neste cen\u00e1rio, t\u00eam impacto limitado sobre o mercado de capitais. Contudo, caso a correla\u00e7\u00e3o aumente em per\u00edodos de maior volatilidade externa, a estrat\u00e9gia de ajuste da taxa Selic poderia ser revisitada para mitigar efeitos de transmiss\u00e3o cambial sobre a economia real.",
+    "heatmap_correlacao.png": "**Principais correla\u00e7\u00f5es**  \n- O **d\u00f3lar\u202fBRL** e a taxa oficial de c\u00e2mbio (**c\u00e2mbio\u202fBCB**) apresentam correla\u00e7\u00e3o quase perfeita (r\u202f=\u202f0.9947, p\u202f<\u202f0.001), confirmando que varia\u00e7\u00f5es no pre\u00e7o interno do real s\u00e3o praticamente id\u00eanticas \u00e0s varia\u00e7\u00f5es da cota\u00e7\u00e3o oficial.  \n- O **US\u202fDollar Index (DXY)** tem correla\u00e7\u00e3o negativa moderada\u2011forte com o **Ibovespa** (r\u202f=\u202f\u20110.6459, p\u202f<\u202f0.001) e com a **Selic** (r\u202f=\u202f\u20110.4543, p\u202f<\u202f0.001), indicando que a valoriza\u00e7\u00e3o do d\u00f3lar global tende a retirar fluxo de capitais de a\u00e7\u00f5es brasileiras e a pressionar a taxa de juros dom\u00e9stica para baixo (poss\u00edvel efeito de pol\u00edtica acomodativa ou de fuga de risco).  \n- O DXY ainda mostra correla\u00e7\u00e3o positiva com a **infla\u00e7\u00e3o de 12\u202fmeses (IPCA)** (r\u202f=\u202f0.3357, p\u202f<\u202f0.001), sugerindo que choques externos de d\u00f3lar podem alimentar press\u00f5es inflacion\u00e1rias internas.  \n\n**Implica\u00e7\u00f5es para a pol\u00edtica monet\u00e1ria**  \n- Como a Selic est\u00e1 positivamente correlacionada com o Ibovespa (r\u202f=\u202f0.3347, p\u202f<\u202f0.001) e com o IPCA (r",
+    "rolling_correlation.png": "**An\u00e1lise de Correla\u00e7\u00e3o Rolling (30\u2011, 60\u2011 e 90\u2011dias)**  \n\n| Per\u00edodo | M\u00e9dia Hist\u00f3rica | M\u00e9dia Recente | M\u00ednimo | M\u00e1ximo |\n|--------|----------------|--------------|--------|--------|\n| 30\u202fd   | **\u20110,5149** | **\u20110,0307** | **\u20110,9548** | **0,7103** |\n| 60\u202fd   | **\u20110,5511** | **\u20110,2886** | **\u20110,9353** | **0,4613** |\n| 90\u202fd   | **\u20110,5371** | **\u20110,4061** | **\u20110,9365** | **0,4741** |\n\nA correla\u00e7\u00e3o hist\u00f3rica entre o indicador analisado (presumivelmente a taxa Selic ou outro fator macro) e os ativos\u2011chave (d\u00f3lar, Ibovespa) tem sido moderadamente negativa (\u2248\u202f\u20110,5). Isso indica que, historicamente, eleva\u00e7\u00e3o da taxa ou do risco tende a pressionar o d\u00f3lar e a desvalorizar o Ibovespa. Nos \u00faltimos 30\u202fdias, por\u00e9m, a correla\u00e7\u00e3o quase desapareceu (\u20110,03), sugerindo que o efeito imediato da pol\u00edtica monet\u00e1ria sobre a moeda e o \u00edndice est\u00e1 enfraquecido. Em janelas de 60 e 90\u202fdias a rela\u00e7\u00e3o ainda \u00e9 negativa (\u20110,29 e \u20110,41), mas menos intensa que a m\u00e9dia hist\u00f3rica, apontando para um per\u00edodo de \u201cdesacoplamento\u201d parcial entre a pol\u00edtica de juros e os pre\u00e7os de ativos.\n\nOs valores extremos (m\u00ednimo \u2248\u202f\u20110,95 e m\u00e1ximo \u2248\u202f+0,71) revelam que a sensibilidade pode oscilar amplamente, o que aumenta a incerteza para investidores. A diminui\u00e7\u00e3o da correla\u00e7\u00e3o recente pode refletir a atua\u00e7\u00e3o mais agressiva do Banco Central (cortes ou aumentos de Selic) que j\u00e1 est\u00e1 precificada nos mercados, ou ainda a influ\u00eancia de fatores externos (c\u00e2mbio de risco, fluxo de capitais) que mitigam o impacto direto da taxa de juros. Para a pol\u00edtica monet\u00e1ria, a tend\u00eancia de correla\u00e7\u00e3o mais fraca sugere que ajustes na Selic ter\u00e3o efeito mais dilu\u00eddo sobre o d\u00f3lar e",
+    "feature_importance_rf.png": "## An\u00e1lise do modelo de import\u00e2ncia de vari\u00e1veis  \n\nO Random Forest apresenta **MAE\u202f=\u202f0.3267**, **RMSE\u202f=\u202f0.3873** e **R\u00b2\u202f=\u202f\u20114.94**, indicando que, apesar de erros modestos em termos absolutos, o modelo tem capacidade explicativa muito limitada (R\u00b2 negativo). Isso sugere que as vari\u00e1veis inclu\u00eddas n\u00e3o capturam bem a din\u00e2mica subjacente ao alvo analisado, possivelmente por omiss\u00e3o de fatores externos ou por alta volatilidade dos mercados.\n\nEntre os preditores, a **\u00edndice Ibovespa** concentra a maior parte da import\u00e2ncia (\u2248\u202f44\u202f%), revelando que o comportamento da bolsa brasileira \u00e9 o principal motor das previs\u00f5es do modelo. Em seguida, o **IPCA acumulado em 12\u202fmeses** (\u2248\u202f31\u202f%) e a **taxa Selic** (\u2248\u202f19\u202f%) tamb\u00e9m exercem influ\u00eancia relevante, indicando que expectativas inflacion\u00e1rias e a pol\u00edtica monet\u00e1ria ainda s\u00e3o determinantes, embora secund\u00e1rios ao sentimento do mercado acion\u00e1rio. O **DXY (d\u00f3lar americano)** aparece com menor peso (\u2248\u202f6\u202f%), sugerindo que, neste conjunto, a varia\u00e7\u00e3o cambial tem impacto limitado em compara\u00e7\u00e3o com os indicadores dom\u00e9sticos.\n\nA preponder\u00e2ncia do Ibovespa e a presen\u00e7a significativa da Selic apontam que, para melhorar a performance preditiva, seria \u00fatil incorporar vari\u00e1veis que capturem melhor a rela\u00e7\u00e3o entre pol\u00edtica monet\u00e1ria, infla\u00e7\u00e3o e fluxo de capitais internacionais, al\u00e9m de considerar modelos que tratem a n\u00e3o\u2011linearidade e a alta correla\u00e7\u00e3o entre esses fatores.",
+    "forecast_sarimax.png": "**An\u00e1lise do Forecast SARIMAX (5\u2011day tail)**  \n\n| M\u00e9trica | Valor |\n|--------|-------|\n| AIC | **\u20113449,97** |\n| BIC | **\u20113415,36** |\n| Valor m\u00e9dio previsto (2026\u201105\u201125 a 2026\u201106\u201105) | **5,018\u202f%** |\n| Desvio m\u00e1ximo da s\u00e9rie de previs\u00e3o | **\u2248\u202f0,000\u202f%** (varia\u00e7\u00e3o de 5,0178 a 5,0182) |\n\nO modelo SARIMAX apresenta AIC e BIC muito negativos, indicando um ajuste superior ao de modelos concorrentes. A s\u00e9rie de previs\u00f5es converge rapidamente para **\u2248\u202f5,02\u202f%**, com varia\u00e7\u00e3o praticamente nula ao longo dos dez dias projetados, sinalizando estabilidade macro\u2011econ\u00f4mica no horizonte imediato.\n\n- **Impacto no d\u00f3lar:** uma taxa de refer\u00eancia est\u00e1vel em torno de 5\u202f% reduz a incerteza sobre a pol\u00edtica monet\u00e1ria, limitando press\u00f5es de alta cambial. O d\u00f3lar tende a permanecer pr\u00f3ximo ao patamar atual, com volatilidade moderada, j\u00e1 que os agentes de mercado n\u00e3o antecipam mudan\u00e7as bruscas na taxa Selic.  \n- **Impacto no Ibovespa:** a previsibilidade da taxa de juros favorece o custo de capital das empresas brasileiras, sustentando a atratividade de ativos de renda vari\u00e1vel. A estabilidade da Selic contribui para um ambiente de risco controlado, o que pode manter o Ibovespa em patamares est\u00e1veis ou permitir leves ganhos de pre\u00e7o.  \n- **Pol\u00edtica monet\u00e1ria (Selic):** o forecast de 5,02\u202f% sugere que o Comit\u00ea de Pol\u00edtica Monet\u00e1ria (Copom) dever\u00e1 manter a taxa na faixa atual, sem necessidade de novos ajustes de curto prazo. Essa postura \u201chold\u201d refor\u00e7a a mensagem de que a infla\u00e7\u00e3o est\u00e1 sob controle e que a pol\u00edtica est\u00e1 em regime de acomoda\u00e7\u00e3o moderada."
   },
   "charts": [
     "dual_line_ibovespa_dolar.png",
@@ -211,12 +220,13 @@
     "selic_vs_dolar_brl.png",
     "heatmap_correlacao.png",
     "rolling_correlation.png",
-    "forecast_arima.png",
+    "forecast_sarimax.png",
     "feature_importance_rf.png"
   ],
-  "dataset_rows": 2170,
+  "pdf_report": "relatorio_atualizado.pdf",
+  "dataset_rows": 1039,
   "date_range": {
-    "start": "2018-01-02",
-    "end": "2026-05-01"
+    "start": "2022-05-25",
+    "end": "2026-05-22"
   }
 }

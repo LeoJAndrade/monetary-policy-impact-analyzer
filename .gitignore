@@ -38,6 +38,6 @@ build/
 *.log
 
 # Models list
-.models_from_groq_api.py 
-.models_list.json
-.monetary_analysis.db
+models_from_groq_api.py 
+models_list.json
+monetary_analysis.db

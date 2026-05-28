@@ -13,14 +13,14 @@ O **PI-V** é um pipeline de análise macro-financeira que:
 - Testa a **significância estatística** (p-value, α = 0.05) de cada par de variáveis.
 - Treina três modelos preditivos para o câmbio (USD/BRL):
   - **Regressão Linear Múltipla** — interpretável e explicativa.
-  - **ARIMA(1,1,1)** — captura padrões temporais (tendência + sazonalidade).
+  - **SARIMAX(1,1,1)** — captura padrões temporais (tendência + sazonalidade).
   - **Random Forest** — captura não-linearidades entre as variáveis.
-- Gera 7 gráficos profissionais salvos em `reports/`.
+- Gera 7 gráficos profissionais e **análises econômicas automáticas (via IA)**, consolidando-os em um **relatório PDF formatado**.
 - Disponibiliza um **dashboard web** para visualização e controle em tempo real.
 - (Opcional) Envia o relatório automaticamente por **e-mail** e/ou **Telegram**.
 - Integração com um **Agente de IA** especialista em política monetária (usando o modelo `gpt-oss-120b` via **Groq API**).
-- **Banco de dados local (SQLite)** para armazenar histórico de conversas do usuário.
-- **Webhook configurado para Telegram**, permitindo que o usuário interaja em tempo real com o agente.
+- **Chat Integrado no Dashboard** e **Webhook configurado para Telegram**, permitindo que o usuário interaja em tempo real com o agente.
+- **Banco de dados local (SQLite)** para armazenar o histórico de conversas do usuário.
 
 ---
 
@@ -43,7 +43,8 @@ PI-V/
 │   │   └── bcb_data.py          ← Selic e IPCA via python-bcb (API SGS/BCB)
 │   ├── analysis/
 │   │   ├── correlation.py       ← Pearson, rolling correlation, p-value
-│   │   └── models.py            ← LinearRegression, ARIMA, RandomForest
+│   │   ├── models.py            ← LinearRegression, SARIMAX, RandomForest
+│   │   └── analyst.py           ← Gera análises textuais dos gráficos usando IA
 │   ├── visualization/
 │   │   └── charts.py            ← Geração e salvamento de gráficos
 │   └── notifications/
@@ -75,8 +76,9 @@ PI-V/
 | `src/data/market_data.py` | Baixa preços de fechamento de `^BVSP`, `BRL=X` e `DX-Y.NYB` via `yfinance` |
 | `src/data/bcb_data.py` | Séries 11 (Selic) e 13522 (IPCA 12m) via `python-bcb` |
 | `src/analysis/correlation.py` | `pearson_matrix`, `rolling_correlation`, `correlation_significance` |
-| `src/analysis/models.py` | `linear_regression_model`, `arima_model`, `random_forest_model` |
-| `src/visualization/charts.py` | Gráfico duplo, heatmap, rolling, forecast ARIMA, feature importance |
+| `src/analysis/models.py` | `linear_regression_model`, `sarimax_model`, `random_forest_model` |
+| `src/analysis/analyst.py` | Consulta IA (Groq) para gerar análises econômicas automáticas dos gráficos |
+| `src/visualization/charts.py` | Gráfico duplo, heatmap, rolling, forecast SARIMAX, feature importance, exportação de relatórios em PDF com estilo ABNT e análises da IA |
 | `src/notifications/email_sender.py` | Envia PDF + imagens via SMTP com TLS |
 | `src/notifications/telegram_bot.py` | Envia mensagem, fotos e documentos via Telegram Bot API |
 | `config/settings.py` | Carrega variáveis do `.env` (tokens, e-mails, chaves de API) |
@@ -160,8 +162,9 @@ O dashboard oferece:
 |---|---|
 | **Gráficos** | Grid com os 7 charts; clique para abrir em tamanho real |
 | **Correlação** | Heatmap colorido (Pearson) + tabela de p-values com badge ✓/— |
-| **Modelos** | Cards com R², RMSE, MAE; coeficientes LR; previsão ARIMA; barras de feature importance RF |
+| **Modelos** | Cards com R², RMSE, MAE; coeficientes LR; previsão SARIMAX; barras de feature importance RF |
 | **Logs** | Terminal ao vivo com streaming da saída do pipeline |
+| **Chat** | Interface de chat diretamente no navegador, integrada à IA e com histórico salvo localmente |
 
 A sidebar permite selecionar o período e clicar **Executar** para rodar o pipeline sem sair do browser.
 
@@ -209,7 +212,9 @@ Os gráficos ficam salvos em `reports/`.
 | `GET` | `/api/run?start=&end=` | Executa pipeline (SSE — stream de logs ao vivo) |
 | `GET` | `/api/results` | Último `results.json` (correlações + métricas dos modelos) |
 | `GET` | `/api/charts` | Lista de PNGs gerados |
-| `GET` | `/reports/<arquivo>` | Serve gráficos da pasta `reports/` |
+| `GET` | `/reports/<arquivo>` | Serve gráficos e o relatório em PDF (`relatorio_atualizado.pdf`) |
+| `POST` | `/api/chat` | Envia mensagens para o Agente de IA |
+| `GET` | `/api/chat/history` | Recupera o histórico da conversa |
 
 ---
 
@@ -222,7 +227,7 @@ Os gráficos ficam salvos em `reports/`.
 | `selic_vs_dolar_brl.png` | Selic vs Dólar |
 | `heatmap_correlacao.png` | Matriz de correlação de Pearson |
 | `rolling_correlation.png` | Correlação rolling 30/60/90 dias |
-| `forecast_arima.png` | Previsão ARIMA com IC 95% |
+| `forecast_sarimax.png` | Previsão SARIMAX com IC 95% |
 | `feature_importance_rf.png` | Importância de features (Random Forest) |
 
 ---

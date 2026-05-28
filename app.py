@@ -16,9 +16,14 @@ import queue
 import subprocess
 import sys
 import threading
+import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, render_template, request, send_from_directory
+
+from orchestrator.ai_agent import process_message
+from config.db_settings import create_db, get_conversation_history
 
 BASE_DIR = Path(__file__).resolve().parent
 REPORTS_DIR = BASE_DIR / "reports"
@@ -137,6 +142,58 @@ def api_charts():
 @app.route("/reports/<path:filename>")
 def serve_report(filename: str):
     return send_from_directory(REPORTS_DIR, filename)
+
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    """Recebe mensagem do frontend e responde via AI Agent, salvando no banco local."""
+    create_db()
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+        
+    user_message = data.get("message", "")
+    chat_id = data.get("chat_id", 999999) # Default local chat ID
+    user_name = data.get("user_name", "LocalUser")
+    
+    if not user_message:
+        return jsonify({"error": "Empty message"}), 400
+
+    # 0. Salva o chat na tabela 'chat' se ainda não existir
+    with sqlite3.connect("monetary_analysis.db", timeout=10.0) as connection:
+        cursor = connection.cursor()
+        sql_chat = "INSERT OR IGNORE INTO chat (id, user_name) VALUES (?, ?)"
+        cursor.execute(sql_chat, (chat_id, user_name))
+        connection.commit()
+
+    # Guarda a mensagem do usuário no banco
+    with sqlite3.connect("monetary_analysis.db", timeout=10.0) as connection:
+        cursor = connection.cursor()
+        sql = "INSERT INTO messages(chat_id, role, message, date) VALUES (?, ?, ?, ?)"
+        cursor.execute(sql, (chat_id, "user", user_message, datetime.now().isoformat()))
+        connection.commit()
+
+    # 3. Envia mensagem do usuário para IA
+    messages_history = get_conversation_history(chat_id)
+    ai_response = process_message(user_message, messages_history, chat_id)
+
+    # Guarda a resposta da IA no banco
+    with sqlite3.connect("monetary_analysis.db", timeout=10.0) as connection:
+        cursor = connection.cursor()
+        sql_ai = "INSERT INTO messages(chat_id, role, message, date) VALUES(?, ?, ?, ?)"
+        cursor.execute(sql_ai, (chat_id, "assistant", ai_response, datetime.now().isoformat()))
+        connection.commit()
+
+    return jsonify({"response": ai_response})
+
+
+@app.route("/api/chat/history", methods=["GET"])
+def api_chat_history():
+    """Retorna o histórico de conversas do usuário local."""
+    chat_id = request.args.get("chat_id", 999999, type=int)
+    history = get_conversation_history(chat_id)
+    return jsonify(history)
 
 
 # ---------------------------------------------------------------------------

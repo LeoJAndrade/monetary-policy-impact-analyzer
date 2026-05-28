@@ -51,6 +51,10 @@ def send_message(
     if chat_id is None:
         _check_config()
 
+    if chat_id == 999999:
+        print("[telegram] Simulação local: Mensagem não enviada ao Telegram.")
+        return {"ok": True, "description": "Local simulation"}
+
     payload = {
         "chat_id": chat_id or TELEGRAM_CHAT_ID,
         "text": text,
@@ -81,6 +85,10 @@ def send_photo(image_path: Path | str, caption: str = "", chat_id: str | int | N
     image_path = Path(image_path)
     if not image_path.exists():
         raise FileNotFoundError(f"Imagem não encontrada: {image_path}")
+
+    if chat_id == 999999:
+        print(f"[telegram] Simulação local: Imagem {image_path.name} gerada mas não enviada.")
+        return {"ok": True, "description": "Local simulation"}
 
     with open(image_path, "rb") as f:
         files = {"photo": (image_path.name, f, "image/png")}

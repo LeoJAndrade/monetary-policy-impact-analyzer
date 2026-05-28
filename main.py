@@ -8,14 +8,12 @@ Fluxo:
     2. Combina os DataFrames em um único dataset
     3. Análise de correlação (Pearson + rolling)
     4. Geração de gráficos
-    5. Modelos preditivos (Regressão Linear, ARIMA, Random Forest)
-    6. (Opcional) Envio de relatório por E-mail e/ou Telegram
+    5. Modelos preditivos (Regressão Linear, SARIMAX, Random Forest)
+    6. (Opcional) Envio de relatório por Telegram
 
 Uso:
     python main.py                         # pipeline completo sem envio
-    python main.py --email                 # pipeline + envio por e-mail
     python main.py --telegram              # pipeline + envio por Telegram
-    python main.py --email --telegram      # ambos
     python main.py --start 2018-01-01      # período personalizado
 """
 
@@ -42,9 +40,10 @@ from src.analysis.correlation import (
 )
 from src.analysis.models import (
     linear_regression_model,
-    arima_model,
+    sarimax_model,
     random_forest_model,
 )
+from src.analysis.analyst import generate_chart_analyses
 
 from src.visualization.charts import (
     dual_line_chart,
@@ -88,7 +87,7 @@ def save_results_json(results: dict) -> Path:
     sig = results["correlations"]["significance"]
     lr = results["models"]["linear_regression"]
     rf = results["models"]["random_forest"]
-    arima = results["models"]["arima"]
+    sarimax = results["models"]["sarimax"]
 
     payload = {
         "pearson_matrix": pearson.round(4).to_dict(),
@@ -98,14 +97,14 @@ def save_results_json(results: dict) -> Path:
                 "metrics": {k: float(v) for k, v in lr["metrics"].items()},
                 "coef": {k: float(v) for k, v in lr["coef"].items()},
             },
-            "arima": {
-                "aic": arima["aic"],
-                "bic": arima["bic"],
+            "sarimax": {
+                "aic": sarimax["aic"],
+                "bic": sarimax["bic"],
                 "forecast": {
                     k.isoformat() if hasattr(k, "isoformat") else str(k): round(
                         float(v), 4
                     )
-                    for k, v in arima["forecast"].items()
+                    for k, v in sarimax["forecast"].items()
                 },
             },
             "random_forest": {
@@ -113,6 +112,7 @@ def save_results_json(results: dict) -> Path:
                 "feature_importance": rf["feature_importance"].round(4).to_dict(),
             },
         },
+        "analyses": results.get("analyses", {}),
         "charts": [p.name for p in results["charts"]],
         "pdf_report": results["pdf_report"].name if results.get("pdf_report") else None,
         "dataset_rows": len(results["dataset"]),
@@ -143,7 +143,7 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
     end = end or today
 
     print(f"\n{'='*60}")
-    print(f"  PI-V — Ibovespa | Dólar | Selic  |  {start} → {end}")
+    print(f"  PI-V - Ibovespa | Dolar | Selic  |  {start} -> {end}")
     print(f"{'='*60}\n")
 
     # ------------------------------------------------------------------
@@ -212,14 +212,16 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
     print(f"\n  [LinearRegression] {lr_result['metrics']}")
     print(f"  Coeficientes: {lr_result['coef']}")
 
-    # --- ARIMA ---
-    arima_result = arima_model(df_full["dolar_brl"], order=(1, 1, 1), n_forecast=30)
-    print(f"\n  [ARIMA(1,1,1)]  AIC={arima_result['aic']}  BIC={arima_result['bic']}")
+    # --- SARIMAX ---
+    exog_cols = [c for c in df_model.columns if c != "dolar_brl"]
+    sarimax_result = sarimax_model(df_full, target="dolar_brl", exog_cols=exog_cols, order=(1, 1, 1), n_forecast=30)
+    print(f"\n  [SARIMAX(1,1,1)]  AIC={sarimax_result['aic']}  BIC={sarimax_result['bic']}")
     chart_paths.append(
         forecast_chart(
             df_full["dolar_brl"],
-            arima_result["forecast"],
-            arima_result["conf_int"],
+            sarimax_result["forecast"],
+            sarimax_result["conf_int"],
+            title="Previsão SARIMAX — dolar_brl"
         )
     )
 
@@ -230,16 +232,10 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
     chart_paths.append(feature_importance_chart(rf_result["feature_importance"]))
 
     # ------------------------------------------------------------------
-    # 5. Sumário
+    # 5. Análise da IA
     # ------------------------------------------------------------------
-    print(f"\n[5/5] Pipeline concluído. {len(chart_paths)} gráficos em reports/\n")
-
-    pdf_report = export_plots_pdf(
-        image_paths=chart_paths,
-        title="PI-V — Relatorio Tecnico",
-        subtitle=f"Periodo analisado: {start} a {end}",
-    )
-
+    print("\n[5/6] Preparando payload para a IA...")
+    
     payload = {
         "dataset": df_full,
         "correlations": {
@@ -248,13 +244,33 @@ def run_pipeline(start: str, end: str | None = None) -> dict:
             "significance": sig_test,
         },
         "charts": chart_paths,
-        "pdf_report": pdf_report,
         "models": {
             "linear_regression": lr_result,
-            "arima": arima_result,
+            "sarimax": sarimax_result,
             "random_forest": rf_result,
         },
     }
+    
+    # Gera análises textuais baseadas nos resultados
+    analyses = generate_chart_analyses(payload)
+    
+    # Adiciona no payload para ser salvo no results.json
+    payload["analyses"] = analyses
+
+    # ------------------------------------------------------------------
+    # 6. Relatório e JSON
+    # ------------------------------------------------------------------
+    print(f"\n[6/6] Pipeline concluído. {len(chart_paths)} gráficos gerados.\n")
+
+    pdf_report = export_plots_pdf(
+        image_paths=chart_paths,
+        filename="relatorio_atualizado.pdf",
+        title="PI-V - Relatorio Tecnico",
+        subtitle=f"Periodo analisado: {start} a {end}",
+        analyses=analyses,
+    )
+
+    payload["pdf_report"] = pdf_report
     save_results_json(payload)
     return payload
 
@@ -264,19 +280,19 @@ def build_summary_text(results: dict) -> str:
     pearson = results["correlations"]["pearson"]
     lr_metrics = results["models"]["linear_regression"]["metrics"]
     rf_metrics = results["models"]["random_forest"]["metrics"]
-    arima_aic = results["models"]["arima"]["aic"]
+    sarimax_aic = results["models"]["sarimax"]["aic"]
 
     lines = [
-        "*PI-V — Relatório Automático*",
+        "*PI-V - Relatorio Automatico*",
         f"Data: {date.today():%d/%m/%Y}",
         "",
-        "*Correlação de Pearson (Ibovespa × Dólar):*",
+        "*Correlacao de Pearson (Ibovespa x Dolar):*",
         f"`{pearson.loc['ibovespa', 'dolar_brl']:.4f}`",
         "",
-        "*Métricas dos Modelos (target: Dólar)*",
-        f"Regressão Linear → R²={lr_metrics['R2']}  RMSE={lr_metrics['RMSE']}",
-        f"Random Forest    → R²={rf_metrics['R2']}  RMSE={rf_metrics['RMSE']}",
-        f"ARIMA(1,1,1)     → AIC={arima_aic}",
+        "*Metricas dos Modelos (target: Dolar)*",
+        f"Regressao Linear -> R2={lr_metrics['R2']}  RMSE={lr_metrics['RMSE']}",
+        f"Random Forest    -> R2={rf_metrics['R2']}  RMSE={rf_metrics['RMSE']}",
+        f"SARIMAX(1,1,1)   -> AIC={sarimax_aic}",
     ]
     return "\n".join(lines)
 
@@ -297,9 +313,6 @@ def parse_args() -> argparse.Namespace:
         "--end", default=None, help="Data final YYYY-MM-DD (padrão: hoje)"
     )
     parser.add_argument(
-        "--email", action="store_true", help="Enviar relatório por e-mail"
-    )
-    parser.add_argument(
         "--telegram", action="store_true", help="Enviar relatório pelo Telegram"
     )
     return parser.parse_args()
@@ -308,11 +321,6 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_args()
     results = run_pipeline(start=args.start, end=args.end)
-
-    if args.email:
-        from src.notifications.email_sender import send_report
-
-        send_report(attachments=[results["pdf_report"]])
 
     if args.telegram:
         from src.notifications.telegram_bot import send_report_bundle

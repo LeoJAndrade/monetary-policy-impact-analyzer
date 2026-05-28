@@ -131,7 +131,62 @@ def arima_model(
 
 
 # ---------------------------------------------------------------------------
-# 3. Random Forest
+# 3. SARIMAX
+# ---------------------------------------------------------------------------
+
+def sarimax_model(
+    df: pd.DataFrame,
+    target: str = "dolar_brl",
+    exog_cols: list[str] | None = None,
+    order: tuple[int, int, int] = (1, 1, 1),
+    n_forecast: int = 30,
+) -> dict[str, Any]:
+    """Modelo SARIMAX (ARIMA com variáveis exógenas).
+
+    Args:
+        df:         DataFrame com o target e as variáveis exógenas.
+        target:     Coluna alvo.
+        exog_cols:  Lista de colunas exógenas.
+        order:      (p, d, q) do ARIMA.
+        n_forecast: Quantos dias projetar à frente.
+
+    Returns:
+        dict com: model_fit, forecast, conf_int, aic, bic, summary.
+    """
+    from statsmodels.tsa.statespace.sarimax import SARIMAX
+
+    df_clean = df.dropna().asfreq("B").ffill()   # freq business day
+    series = df_clean[target]
+
+    if exog_cols is None or len(exog_cols) == 0:
+        exog = None
+        forecast_exog = None
+    else:
+        exog = df_clean[exog_cols]
+        # Para prever, assumimos que as exógenas se mantêm no último valor conhecido
+        last_exog = exog.iloc[[-1]]
+        forecast_exog = pd.concat([last_exog] * n_forecast, ignore_index=True)
+        # O índice será gerado pelo próprio get_forecast com base nos steps
+        forecast_exog.index = pd.date_range(start=series.index[-1] + pd.offsets.BDay(1), periods=n_forecast, freq="B")
+
+    model = SARIMAX(series, exog=exog, order=order)
+    fit = model.fit(disp=False)
+
+    forecast_result = fit.get_forecast(steps=n_forecast, exog=forecast_exog)
+    forecast_df = forecast_result.summary_frame(alpha=0.05)
+
+    return {
+        "model_fit": fit,
+        "forecast": forecast_df["mean"],
+        "conf_int": forecast_df[["mean_ci_lower", "mean_ci_upper"]],
+        "aic": round(fit.aic, 2),
+        "bic": round(fit.bic, 2),
+        "summary": fit.summary(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# 4. Random Forest
 # ---------------------------------------------------------------------------
 
 def random_forest_model(

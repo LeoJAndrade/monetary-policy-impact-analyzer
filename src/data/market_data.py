@@ -38,9 +38,12 @@ def get_market_data(start: str, end: str | None = None) -> pd.DataFrame:
         progress=False,
     )
 
-    # yfinance retorna MultiIndex quando múltiplos tickers
+    # yfinance retorna MultiIndex quando múltiplos tickers, em ordem alfabética
     close = raw["Close"].copy()
-    close.columns = list(TICKERS.keys())   # renomeia para nomes legíveis
+
+    # Mapeia de Ticker para o nome legível correspondente
+    inverse_tickers = {v: k for k, v in TICKERS.items()}
+    close.rename(columns=inverse_tickers, inplace=True)
 
     close.index = pd.to_datetime(close.index)
     close.dropna(how="all", inplace=True)
